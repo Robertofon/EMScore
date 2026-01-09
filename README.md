@@ -1,6 +1,6 @@
 # EMSCore - Energie-Management-System
 
-Ein hochskalierbares Energie-Management-System (EMS) mit Batterieunterstützung und erweiterbaren Modulen, entwickelt in .NET 10.
+Ein hochskalierbares Energie-Management-System (EMS) mit Batterieunterstützung und Plugin-basierter Erweiterbarkeit, implementiert in .NET 10 mit TimescaleDB und MQTT.
 
 ## 🎯 Projektübersicht
 
@@ -14,19 +14,24 @@ EMSCore ist ein modernes Energie-Management-System, das aus einem zentralen Back
 
 ## 🏗️ Architektur
 
-Das System besteht aus zwei Hauptkomponenten:
+Das System basiert auf Clean Architecture mit folgenden Layern:
 
-1. **Backend System:** Zentrale Datenverarbeitung, -speicherung und Systemverwaltung
-2. **Edge Systems:** Dezentrale Datenerfassung und lokale Verarbeitung mit Offline-Fähigkeiten
+- **Domain Layer** (`EMSCore.Domain`) - Core Entities, Enums und Interfaces
+- **Application Layer** (`EMSCore.Application`) - MediatR Commands/Queries und Handler
+- **Infrastructure Layer** (`EMSCore.Infrastructure`) - EF Core, Repositories, MQTT Services
+- **Edge System** (`EMSCore.Edge`) - ASP.NET Core Web API für Edge-Deployment
 
 ### Technologie-Stack
 
-- **Framework:** .NET 10 mit ASP.NET Core
-- **ORM:** Entity Framework Core 10 mit PostgreSQL Provider
-- **Datenbank:** PostgreSQL 16+ mit TimescaleDB 2.14+ Extension
-- **Kommunikation:** MQTT 5.0 + gRPC mit HTTP/2
-- **Service Bus:** MediatR + System.Threading.Channels + Reactive Extensions
-- **Authentifizierung:** Hybride Architektur (lokale Konten + Keycloak/OIDC)
+- **.NET 10** - Application Framework
+- **ASP.NET Core** - Web API Framework
+- **Entity Framework Core 10** - ORM mit PostgreSQL Provider
+- **PostgreSQL 16** - Relationale Datenbank
+- **TimescaleDB** - Zeitreihen-Extension
+- **MQTTnet** - MQTT Client/Server
+- **MediatR** - CQRS Pattern
+- **Docker** - Containerisierung
+- **Swagger/OpenAPI** - API Dokumentation
 
 ## 📁 Repository-Struktur
 
@@ -37,39 +42,169 @@ EMSCore/
 │   ├── api/                       # API-Dokumentation
 │   └── deployment/                # Deployment-Guides
 ├── src/                           # Quellcode
-│   ├── EMSCore.Backend/           # Backend-Services
-│   ├── EMSCore.Edge/              # Edge-Services
-│   ├── EMSCore.Shared/            # Geteilte Bibliotheken
+│   ├── EMSCore.Domain/            # Domain Layer
+│   ├── EMSCore.Application/       # Application Layer
+│   ├── EMSCore.Infrastructure/    # Infrastructure Layer
+│   ├── EMSCore.Edge/              # Edge System (ASP.NET Core API)
 │   └── EMSCore.Plugins/           # Plugin-Framework
 ├── tests/                         # Tests
-├── docker/                        # Docker-Konfigurationen
-├── k8s/                          # Kubernetes-Manifeste
-└── scripts/                      # Build- und Deployment-Skripte
+├── config/                        # Konfigurationsdateien
+├── scripts/                       # Initialisierungsskripte
+├── docker-compose.yml             # Docker Compose Setup
+└── README.md                      # Diese Datei
 ```
 
-## 🚀 Quick Start
+## 🚀 Quick Start mit Docker
 
 ### Voraussetzungen
 
-- .NET 10 SDK
-- PostgreSQL 16+ mit TimescaleDB
-- Docker (optional)
+- Docker und Docker Compose
+- .NET 10 SDK (für lokale Entwicklung)
+- Git
 
-### Installation
+### 1. Repository klonen
 
 ```bash
 # Repository klonen
 git clone ssh://git@codeberg.org/EMSCore/EMSCore.git
 cd EMSCore
+```
 
+### 2. System starten
+
+```bash
+# Alle Services starten
+docker-compose up -d
+
+# Logs verfolgen
+docker-compose logs -f emscore-edge
+```
+
+### 3. Services überprüfen
+
+- **EMS Core API**: http://localhost:8080
+- **Swagger UI**: http://localhost:8080 (automatisch geöffnet)
+- **Health Check**: http://localhost:8080/health
+- **Grafana Dashboard**: http://localhost:3000 (admin/admin)
+- **MQTT Broker**: localhost:1883
+- **PostgreSQL/TimescaleDB**: localhost:5432
+
+## 📊 API Endpoints
+
+### Energiedaten
+
+```bash
+# Aktuelle Messungen für ein Gerät
+GET /api/energy/devices/{deviceId}/measurements?startTime=2024-01-01T00:00:00Z&endTime=2024-01-02T00:00:00Z
+
+# Aggregierte Daten (stündlich)
+GET /api/energy/devices/{deviceId}/measurements/aggregated?startTime=2024-01-01T00:00:00Z&endTime=2024-01-02T00:00:00Z&intervalMinutes=60
+
+# Neueste Messung
+GET /api/energy/devices/{deviceId}/measurements/latest
+
+# Statistiken
+GET /api/energy/devices/{deviceId}/measurements/statistics?measurementType=Power&startTime=2024-01-01T00:00:00Z&endTime=2024-01-02T00:00:00Z
+
+# Site-Daten
+GET /api/energy/sites/{siteId}/measurements?startTime=2024-01-01T00:00:00Z&endTime=2024-01-02T00:00:00Z
+```
+
+### Geräte-Management
+
+```bash
+# Alle Geräte
+GET /api/devices
+
+# Spezifisches Gerät
+GET /api/devices/{deviceId}
+
+# Geräte nach Site
+GET /api/devices/site/{siteId}
+
+# Aktive Geräte
+GET /api/devices/active
+
+# Online Geräte
+GET /api/devices/online
+
+# Neues Gerät erstellen
+POST /api/devices
+{
+  "id": "device-001",
+  "name": "Solar Panel 1",
+  "type": "Solar Panel",
+  "siteId": "site-001",
+  "manufacturer": "SolarTech",
+  "model": "ST-500W"
+}
+```
+
+## 🔌 MQTT Integration
+
+### Topic-Struktur
+
+```
+ems/{site_id}/devices/{device_id}/measurements/{type}
+ems/{site_id}/devices/{device_id}/measurements/batch
+ems/{site_id}/devices/{device_id}/status
+```
+
+### Beispiel-Nachrichten
+
+#### Einzelne Messung
+```bash
+# Topic: ems/site-001/devices/solar-panel-001/measurements/power
+mosquitto_pub -h localhost -t "ems/docker-site-001/devices/solar-panel-001/measurements/power" -m '{
+  "value": 1500.5,
+  "unit": "W",
+  "timestamp": "2024-01-01T12:00:00Z",
+  "quality": 0,
+  "metadata": {"phase": "L1"}
+}'
+```
+
+#### Batch-Messungen
+```bash
+# Topic: ems/site-001/devices/device-001/measurements/batch
+mosquitto_pub -h localhost -t "ems/docker-site-001/devices/battery-001/measurements/batch" -m '{
+  "measurements": [
+    {"type": "Power", "value": -800, "unit": "W", "timestamp": "2024-01-01T12:00:00Z"},
+    {"type": "Voltage", "value": 48.2, "unit": "V", "timestamp": "2024-01-01T12:00:00Z"},
+    {"type": "BatterySOC", "value": 75.5, "unit": "%", "timestamp": "2024-01-01T12:00:00Z"}
+  ]
+}'
+```
+
+## 🛠️ Lokale Entwicklung
+
+### Voraussetzungen
+
+- .NET 10 SDK
+- PostgreSQL mit TimescaleDB Extension
+- MQTT Broker (z.B. Mosquitto)
+
+### Setup
+
+```bash
 # Dependencies installieren
 dotnet restore
 
-# Datenbank migrieren
-dotnet ef database update --project src/EMSCore.Backend
+# Datenbank-Connection String anpassen
+# src/EMSCore.Edge/appsettings.json
 
-# Backend starten
-dotnet run --project src/EMSCore.Backend
+# Anwendung starten
+dotnet run --project src/EMSCore.Edge
+```
+
+### Tests ausführen
+
+```bash
+# Unit Tests
+dotnet test
+
+# Integration Tests mit Docker
+docker-compose -f docker-compose.test.yml up --abort-on-container-exit
 ```
 
 ## 📖 Dokumentation
@@ -79,32 +214,75 @@ dotnet run --project src/EMSCore.Backend
 - **[API-Dokumentation](docs/api/)** - REST und gRPC APIs
 - **[Deployment-Guide](docs/deployment/)** - Installation und Konfiguration
 
-## 🔧 Entwicklung
+## 🧪 Testdaten
 
-### Plugin-Entwicklung
+Das System wird mit Beispieldaten initialisiert:
+
+- **Site**: `docker-site-001` (Docker Development Site)
+- **Geräte**: 
+  - `solar-panel-001` (Solar Panel Array)
+  - `battery-001` (Lithium Battery Bank)
+  - `inverter-001` (Grid Tie Inverter)
+  - `meter-001` (Smart Energy Meter)
+- **Messungen**: 24 Stunden historische Daten mit realistischen Werten
+
+## 🔧 Konfiguration
+
+### Umgebungsvariablen
+
+```bash
+# Datenbank
+ConnectionStrings__DefaultConnection="Host=localhost;Database=emscore;Username=postgres;Password=postgres"
+
+# MQTT
+Mqtt__BrokerHost="localhost"
+Mqtt__BrokerPort=1883
+Mqtt__Username=""
+Mqtt__Password=""
+
+# EMS Spezifisch
+EMS__SiteId="site-001"
+EMS__SiteName="My Site"
+EMS__EdgeMode=true
+```
+
+## 🔌 Plugin-System
+
+Das System unterstützt Plugin-basierte Erweiterungen:
 
 ```csharp
-[EMSModule("MyPlugin", "1.0.0", "Energy")]
-public class MyEnergyPlugin : IEMSModule
+// Beispiel Plugin Interface
+public interface IBatteryModule : IEMSModule
 {
-    public async Task InitializeAsync(IServiceProvider serviceProvider)
-    {
-        // Plugin-Initialisierung
-    }
+    Task<BatteryStatus> GetStatusAsync();
+    Task<Result> SetChargingModeAsync(ChargingMode mode);
+    IObservable<BatteryEvent> BatteryEvents { get; }
 }
 ```
 
-### Beitragen
+## 🚀 Deployment
+
+### Docker Production
+
+```bash
+# Production Build
+docker build -f src/EMSCore.Edge/Dockerfile -t emscore:latest .
+
+# Mit Production Compose
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+```
+
+## 🤝 Beitragen
 
 1. Fork das Repository
-2. Erstelle einen Feature-Branch (`git checkout -b feature/amazing-feature`)
-3. Committe deine Änderungen (`git commit -m 'Add amazing feature'`)
-4. Push zum Branch (`git push origin feature/amazing-feature`)
-5. Öffne eine Pull Request
+2. Feature Branch erstellen (`git checkout -b feature/amazing-feature`)
+3. Änderungen committen (`git commit -m 'Add amazing feature'`)
+4. Branch pushen (`git push origin feature/amazing-feature`)
+5. Pull Request erstellen
 
 ## 📄 Lizenz
 
-Dieses Projekt steht unter der [MIT Lizenz](LICENSE).
+Dieses Projekt steht unter der [EUPL 1.2 Lizenz](LICENSE).
 
 ## 🤝 Community
 
@@ -114,6 +292,10 @@ Dieses Projekt steht unter der [MIT Lizenz](LICENSE).
 
 ## 🏷️ Version
 
-Aktuelle Version: **0.1.0-alpha**
+Aktuelle Version: **0.1.0-alpha** (Prototyp)
 
 Siehe [CHANGELOG.md](CHANGELOG.md) für Details zu Änderungen.
+
+---
+
+**Entwickelt mit ❤️ für nachhaltige Energiesysteme**

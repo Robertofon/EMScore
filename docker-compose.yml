@@ -1,0 +1,125 @@
+version: '3.8'
+
+services:
+  # PostgreSQL with TimescaleDB extension
+  timescaledb:
+    image: timescale/timescaledb:latest-pg16
+    container_name: emscore-timescaledb
+    environment:
+      POSTGRES_DB: emscore
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      TIMESCALEDB_TELEMETRY: 'off'
+    ports:
+      - "5432:5432"
+    volumes:
+      - timescaledb_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    networks:
+      - emscore-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d emscore"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MQTT Broker (Eclipse Mosquitto)
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: emscore-mosquitto
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./config/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_logs:/mosquitto/log
+    networks:
+      - emscore-network
+    healthcheck:
+      test: ["CMD-SHELL", "mosquitto_pub -h localhost -t test -m 'health check' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # EMS Core Edge System
+  emscore-edge:
+    build:
+      context: .
+      dockerfile: src/EMSCore.Edge/Dockerfile
+    container_name: emscore-edge
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Host=timescaledb;Port=5432;Database=emscore;Username=postgres;Password=postgres;Include Error Detail=true
+      - Mqtt__BrokerHost=mosquitto
+      - Mqtt__BrokerPort=1883
+      - EMS__SiteId=docker-site-001
+      - EMS__SiteName=Docker Development Site
+    ports:
+      - "8080:8080"
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+      mosquitto:
+        condition: service_healthy
+    networks:
+      - emscore-network
+    volumes:
+      - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Grafana for data visualization (optional)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: emscore-grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./config/grafana/provisioning:/etc/grafana/provisioning
+    networks:
+      - emscore-network
+    depends_on:
+      - timescaledb
+
+  # MQTT Client for testing (optional)
+  mqtt-client:
+    image: efrecon/mqtt-client
+    container_name: emscore-mqtt-client
+    networks:
+      - emscore-network
+    depends_on:
+      - mosquitto
+    profiles:
+      - testing
+    command: >
+      sh -c "
+        echo 'MQTT Client ready for testing. Use docker exec to run commands.'
+        echo 'Example: docker exec emscore-mqtt-client mosquitto_pub -h mosquitto -t ems/site-001/devices/device-001/measurements/power -m \"{\\\"value\\\": 1500, \\\"unit\\\": \\\"W\\\", \\\"timestamp\\\": \\\"$(date -Iseconds)\\\"}\";'
+        tail -f /dev/null
+      "
+
+volumes:
+  timescaledb_data:
+    driver: local
+  mosquitto_data:
+    driver: local
+  mosquitto_logs:
+    driver: local
+  grafana_data:
+    driver: local
+
+networks:
+  emscore-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

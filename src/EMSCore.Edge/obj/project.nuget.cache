@@ -1,0 +1,50 @@
+{
+  "version": 2,
+  "dgSpecHash": "fBRWxDMmpi4=",
+  "success": true,
+  "projectFilePath": "/home/rob/git/EMSCore/src/EMSCore.Edge/EMSCore.Edge.csproj",
+  "expectedPackageFiles": [
+    "/home/rob/.nuget/packages/datetimerange/1.0.1/datetimerange.1.0.1.nupkg.sha512",
+    "/home/rob/.nuget/packages/mediatr/14.0.0/mediatr.14.0.0.nupkg.sha512",
+    "/home/rob/.nuget/packages/mediatr.contracts/2.0.1/mediatr.contracts.2.0.1.nupkg.sha512",
+    "/home/rob/.nuget/packages/microsoft.aspnetcore.openapi/10.0.1/microsoft.aspnetcore.openapi.10.0.1.nupkg.sha512",
+    "/home/rob/.nuget/packages/microsoft.entityframeworkcore/10.0.0/microsoft.entityframeworkcore.10.0.0.nupkg.sha512",
+    "/home/rob/.nuget/packages/microsoft.entityframeworkcore.abstractions/10.0.0/microsoft.entityframeworkcore.abstractions.10.0.0.nupkg.sha512",
+    "/home/rob/.nuget/packages/microsoft.entityframeworkcore.analyzers/10.0.0/microsoft.entityframeworkcore.analyzers.10.0.0.nupkg.sha512",
+    "/home/rob/.nuget/packages/microsoft.entityframeworkcore.relational/9.0.0/microsoft.entityframeworkcore.relational.9.0.0.nupkg.sha512",
+    "/home/rob/.nuget/packages/microsoft.identitymodel.abstractions/8.14.0/microsoft.identitymodel.abstractions.8.14.0.nupkg.sha512",
+    "/home/rob/.nuget/packages/microsoft.identitymodel.jsonwebtokens/8.14.0/microsoft.identitymodel.jsonwebtokens.8.14.0.nupkg.sha512",
+    "/home/rob/.nuget/packages/microsoft.identitymodel.logging/8.14.0/microsoft.identitymodel.logging.8.14.0.nupkg.sha512",
+    "/home/rob/.nuget/packages/microsoft.identitymodel.tokens/8.14.0/microsoft.identitymodel.tokens.8.14.0.nupkg.sha512",
+    "/home/rob/.nuget/packages/microsoft.openapi/2.0.0/microsoft.openapi.2.0.0.nupkg.sha512",
+    "/home/rob/.nuget/packages/mqttnet/4.3.7.1207/mqttnet.4.3.7.1207.nupkg.sha512",
+    "/home/rob/.nuget/packages/npgsql/9.0.2/npgsql.9.0.2.nupkg.sha512",
+    "/home/rob/.nuget/packages/npgsql.entityframeworkcore.postgresql/9.0.2/npgsql.entityframeworkcore.postgresql.9.0.2.nupkg.sha512"
+  ],
+  "logs": [
+    {
+      "code": "NU1603",
+      "level": "Warning",
+      "message": "EMSCore.Infrastructure depends on MQTTnet (>= 4.3.7) but MQTTnet 4.3.7 was not found. MQTTnet 4.3.7.1207 was resolved instead.",
+      "projectPath": "/home/rob/git/EMSCore/src/EMSCore.Edge/EMSCore.Edge.csproj",
+      "warningLevel": 1,
+      "filePath": "/home/rob/git/EMSCore/src/EMSCore.Edge/EMSCore.Edge.csproj",
+      "libraryId": "MQTTnet",
+      "targetGraphs": [
+        "net10.0"
+      ]
+    },
+    {
+      "code": "NU1608",
+      "level": "Warning",
+      "message": "Detected package version outside of dependency constraint: Npgsql.EntityFrameworkCore.PostgreSQL 9.0.2 requires Microsoft.EntityFrameworkCore (>= 9.0.0 && < 10.0.0) but version Microsoft.EntityFrameworkCore 10.0.0 was resolved.",
+      "projectPath": "/home/rob/git/EMSCore/src/EMSCore.Edge/EMSCore.Edge.csproj",
+      "warningLevel": 1,
+      "filePath": "/home/rob/git/EMSCore/src/EMSCore.Edge/EMSCore.Edge.csproj",
+      "libraryId": "Microsoft.EntityFrameworkCore",
+      "targetGraphs": [
+        "net10.0"
+      ]
+    }
+  ]
+}

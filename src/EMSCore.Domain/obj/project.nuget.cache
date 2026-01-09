@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "rZq+qmHWUjE=",
+  "success": true,
+  "projectFilePath": "/home/rob/git/EMSCore/src/EMSCore.Domain/EMSCore.Domain.csproj",
+  "expectedPackageFiles": [
+    "/home/rob/.nuget/packages/datetimerange/1.0.1/datetimerange.1.0.1.nupkg.sha512"
+  ],
+  "logs": []
+}
