@@ -1,6 +1,6 @@
 using EMSCore.Domain.Entities;
 using EMSCore.Domain.Enums;
-using DateTimeRange;
+using System;
 
 namespace EMSCore.Domain.Interfaces;
 
@@ -18,7 +18,7 @@ public interface IEnergyMeasurementRepository
     /// <returns>Collection of energy measurements</returns>
     Task<IEnumerable<EnergyMeasurement>> GetMeasurementsAsync(
         string deviceId, 
-        DateTimeRange.DateTimeRange range, 
+        DateTimeRange range, 
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -30,7 +30,7 @@ public interface IEnergyMeasurementRepository
     /// <returns>Collection of energy measurements</returns>
     Task<IEnumerable<EnergyMeasurement>> GetSiteMeasurementsAsync(
         string siteId, 
-        DateTimeRange.DateTimeRange range, 
+        DateTimeRange range, 
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -44,7 +44,7 @@ public interface IEnergyMeasurementRepository
     Task<IEnumerable<EnergyMeasurement>> GetMeasurementsByTypeAsync(
         string deviceId, 
         MeasurementType measurementType, 
-        DateTimeRange.DateTimeRange range, 
+        DateTimeRange range, 
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -58,7 +58,7 @@ public interface IEnergyMeasurementRepository
     Task<IEnumerable<EnergyMeasurement>> GetAggregatedDataAsync(
         string deviceId, 
         TimeSpan interval, 
-        DateTimeRange.DateTimeRange range, 
+        DateTimeRange range, 
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -101,22 +101,9 @@ public interface IEnergyMeasurementRepository
     /// <param name="range">Time range for statistics</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Measurement statistics</returns>
-    Task<MeasurementStatistics> GetMeasurementStatisticsAsync(
+    Task<IMeasurementStatistics> GetMeasurementStatisticsAsync(
         string deviceId, 
         MeasurementType measurementType, 
-        DateTimeRange.DateTimeRange range, 
+        DateTimeRange range, 
         CancellationToken cancellationToken = default);
 }
-
-/// <summary>
-/// Statistics for energy measurements
-/// </summary>
-public record MeasurementStatistics(
-    double Average,
-    double Minimum,
-    double Maximum,
-    double Sum,
-    int Count,
-    DateTime FirstTimestamp,
-    DateTime LastTimestamp
-);

@@ -1,7 +1,8 @@
 using MediatR;
 using EMSCore.Domain.Entities;
+using EMSCore.Domain.Interfaces;
 using EMSCore.Domain.Enums;
-using DateTimeRange;
+using System;
 
 namespace EMSCore.Application.Queries;
 
@@ -13,7 +14,7 @@ namespace EMSCore.Application.Queries;
 /// <param name="MeasurementType">Optional filter by measurement type</param>
 public record GetEnergyMeasurementsQuery(
     string DeviceId,
-    DateTimeRange.DateTimeRange Range,
+    DateTimeRange Range,
     MeasurementType? MeasurementType = null
 ) : IRequest<IEnumerable<EnergyMeasurement>>;
 
@@ -25,7 +26,7 @@ public record GetEnergyMeasurementsQuery(
 /// <param name="Interval">Aggregation interval (e.g., 1 hour, 15 minutes)</param>
 public record GetAggregatedEnergyDataQuery(
     string DeviceId,
-    DateTimeRange.DateTimeRange Range,
+    DateTimeRange Range,
     TimeSpan Interval
 ) : IRequest<IEnumerable<EnergyMeasurement>>;
 
@@ -36,7 +37,7 @@ public record GetAggregatedEnergyDataQuery(
 /// <param name="Range">Time range for the measurements</param>
 public record GetSiteEnergyMeasurementsQuery(
     string SiteId,
-    DateTimeRange.DateTimeRange Range
+    DateTimeRange Range
 ) : IRequest<IEnumerable<EnergyMeasurement>>;
 
 /// <summary>
@@ -58,5 +59,5 @@ public record GetLatestMeasurementQuery(
 public record GetMeasurementStatisticsQuery(
     string DeviceId,
     MeasurementType MeasurementType,
-    DateTimeRange.DateTimeRange Range
-) : IRequest<MeasurementStatistics>;
+    DateTimeRange Range
+) : IRequest<IMeasurementStatistics>;

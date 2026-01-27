@@ -95,7 +95,7 @@ builder.Services.AddHostedService<MqttBackgroundService>();
 
 // Add health checks
 builder.Services.AddHealthChecks()
-    .AddDbContext<EMSDbContext>()
+    .AddDbContextCheck<EMSDbContext>()
     .AddCheck<MqttHealthCheck>("mqtt");
 
 // Add logging

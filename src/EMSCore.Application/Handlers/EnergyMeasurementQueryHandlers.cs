@@ -14,7 +14,7 @@ public class EnergyMeasurementQueryHandlers :
     IRequestHandler<GetAggregatedEnergyDataQuery, IEnumerable<EnergyMeasurement>>,
     IRequestHandler<GetSiteEnergyMeasurementsQuery, IEnumerable<EnergyMeasurement>>,
     IRequestHandler<GetLatestMeasurementQuery, EnergyMeasurement?>,
-    IRequestHandler<GetMeasurementStatisticsQuery, MeasurementStatistics>
+    IRequestHandler<GetMeasurementStatisticsQuery, IMeasurementStatistics>
 {
     private readonly IEnergyMeasurementRepository _measurementRepository;
 
@@ -114,7 +114,7 @@ public class EnergyMeasurementQueryHandlers :
     /// <param name="request">Query request with device ID, measurement type, and time range</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Measurement statistics including average, min, max, count, etc.</returns>
-    public async Task<MeasurementStatistics> Handle(
+    public async Task<IMeasurementStatistics> Handle(
         GetMeasurementStatisticsQuery request, 
         CancellationToken cancellationToken)
     {

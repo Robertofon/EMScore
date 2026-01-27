@@ -13,6 +13,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EMSCore.Infrastructure", "s
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EMSCore.Edge", "src\EMSCore.Edge\EMSCore.Edge.csproj", "{0023EEDB-9EF3-4A33-929C-5A19FDF21009}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EMSCore.API", "src\EMSCore.API\EMSCore.API.csproj", "{F5A1C91E-8A5C-4F9A-A78D-D0D42E9230D0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EMSCore.Plugins", "src\EMSCore.Plugins\EMSCore.Plugins.csproj", "{B7A3C0F2-8D9C-4E1A-8A7F-C45E68DE0C3D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

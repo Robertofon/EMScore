@@ -2,8 +2,14 @@
   "version": 3,
   "targets": {
     "net10.0": {
-      "DateTimeRange/1.0.1": {
-        "type": "package"
+      "DateRange/1.0.3": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.0/DateTimeRange.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/DateTimeRange.dll": {}
+        }
       },
       "Microsoft.EntityFrameworkCore/10.0.0": {
         "type": "package",
@@ -247,6 +253,22 @@
           }
         }
       },
+      "MQTTnet.Extensions.ManagedClient/4.3.7.1207": {
+        "type": "package",
+        "dependencies": {
+          "MQTTnet": "4.3.7.1207"
+        },
+        "compile": {
+          "lib/net7.0/MQTTnet.Extensions.ManagedClient.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net7.0/MQTTnet.Extensions.ManagedClient.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "Npgsql/9.0.2": {
         "type": "package",
         "dependencies": {
@@ -285,7 +307,8 @@
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
         "dependencies": {
-          "DateTimeRange": "1.0.1"
+          "DateRange": "1.0.3",
+          "Microsoft.Extensions.Primitives": "7.0.0"
         },
         "compile": {
           "bin/placeholder/EMSCore.Domain.dll": {}
@@ -297,17 +320,18 @@
     }
   },
   "libraries": {
-    "DateTimeRange/1.0.1": {
-      "sha512": "yIsZbW4bPcMu41mky3yBulkaVb0GwR45DZ63kP/3F+DD7OHx/13xRQ5/SIIiHcCzXoQCuSHYnZkvUpPA33BOTQ==",
+    "DateRange/1.0.3": {
+      "sha512": "CphEZMtFNM85fIrHpaar8RXFOS5O2uRgZ0ZI1SGBUPCwueGCRmIIGGt38/7lq86e8lc8w94nn+YFyBrgVqI3JA==",
       "type": "package",
-      "path": "datetimerange/1.0.1",
+      "path": "daterange/1.0.3",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
-        "content/DateTimeExtensions.cs",
-        "content/DateTimeRange.cs",
-        "datetimerange.1.0.1.nupkg.sha512",
-        "datetimerange.nuspec"
+        "calendar.png",
+        "daterange.1.0.3.nupkg.sha512",
+        "daterange.nuspec",
+        "lib/netstandard2.0/DateTimeRange.dll",
+        "readme.md"
       ]
     },
     "Microsoft.EntityFrameworkCore/10.0.0": {
@@ -731,6 +755,41 @@
         "nuget.png"
       ]
     },
+    "MQTTnet.Extensions.ManagedClient/4.3.7.1207": {
+      "sha512": "i7T+4dsBqy3VVvuDuh9mmTbeZwF7eYP+8rHir4rdriM+k2dGwDNuXrScpz6xI3mEBfJZTVno8zy8+r0zzmFQuQ==",
+      "type": "package",
+      "path": "mqttnet.extensions.managedclient/4.3.7.1207",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/net452/MQTTnet.Extensions.ManagedClient.dll",
+        "lib/net452/MQTTnet.Extensions.ManagedClient.xml",
+        "lib/net461/MQTTnet.Extensions.ManagedClient.dll",
+        "lib/net461/MQTTnet.Extensions.ManagedClient.xml",
+        "lib/net48/MQTTnet.Extensions.ManagedClient.dll",
+        "lib/net48/MQTTnet.Extensions.ManagedClient.xml",
+        "lib/net5.0/MQTTnet.Extensions.ManagedClient.dll",
+        "lib/net5.0/MQTTnet.Extensions.ManagedClient.xml",
+        "lib/net6.0/MQTTnet.Extensions.ManagedClient.dll",
+        "lib/net6.0/MQTTnet.Extensions.ManagedClient.xml",
+        "lib/net7.0/MQTTnet.Extensions.ManagedClient.dll",
+        "lib/net7.0/MQTTnet.Extensions.ManagedClient.xml",
+        "lib/netcoreapp3.1/MQTTnet.Extensions.ManagedClient.dll",
+        "lib/netcoreapp3.1/MQTTnet.Extensions.ManagedClient.xml",
+        "lib/netstandard1.3/MQTTnet.Extensions.ManagedClient.dll",
+        "lib/netstandard1.3/MQTTnet.Extensions.ManagedClient.xml",
+        "lib/netstandard2.0/MQTTnet.Extensions.ManagedClient.dll",
+        "lib/netstandard2.0/MQTTnet.Extensions.ManagedClient.xml",
+        "lib/netstandard2.1/MQTTnet.Extensions.ManagedClient.dll",
+        "lib/netstandard2.1/MQTTnet.Extensions.ManagedClient.xml",
+        "lib/uap10.0.10240/MQTTnet.Extensions.ManagedClient.dll",
+        "lib/uap10.0.10240/MQTTnet.Extensions.ManagedClient.pri",
+        "lib/uap10.0.10240/MQTTnet.Extensions.ManagedClient.xml",
+        "mqttnet.extensions.managedclient.4.3.7.1207.nupkg.sha512",
+        "mqttnet.extensions.managedclient.nuspec",
+        "nuget.png"
+      ]
+    },
     "Npgsql/9.0.2": {
       "sha512": "hCbO8box7i/XXiTFqCJ3GoowyLqx3JXxyrbOJ6om7dr+eAknvBNhhUHeJVGAQo44sySZTfdVffp4BrtPeLZOAA==",
       "type": "package",
@@ -773,6 +832,7 @@
     "net10.0": [
       "EMSCore.Domain >= 1.0.0",
       "MQTTnet >= 4.3.7",
+      "MQTTnet.Extensions.ManagedClient >= 4.3.7.1207",
       "Microsoft.EntityFrameworkCore >= 10.0.0",
       "Npgsql.EntityFrameworkCore.PostgreSQL >= 9.0.2"
     ]
@@ -828,6 +888,10 @@
           "MQTTnet": {
             "target": "Package",
             "version": "[4.3.7, )"
+          },
+          "MQTTnet.Extensions.ManagedClient": {
+            "target": "Package",
+            "version": "[4.3.7.1207, )"
           },
           "Microsoft.EntityFrameworkCore": {
             "target": "Package",

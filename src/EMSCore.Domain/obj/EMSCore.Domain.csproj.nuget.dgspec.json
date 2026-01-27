@@ -45,9 +45,13 @@
         "net10.0": {
           "targetAlias": "net10.0",
           "dependencies": {
-            "DateTimeRange": {
+            "DateRange": {
               "target": "Package",
-              "version": "[1.0.1, )"
+              "version": "[1.0.3, )"
+            },
+            "Microsoft.Extensions.Primitives": {
+              "target": "Package",
+              "version": "[7.0.0, )"
             }
           },
           "imports": [

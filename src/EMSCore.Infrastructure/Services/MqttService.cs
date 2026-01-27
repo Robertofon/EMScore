@@ -8,6 +8,7 @@ using MQTTnet.Client;
 using MQTTnet.Extensions.ManagedClient;
 using MQTTnet.Protocol;
 using EMSCore.Domain.Interfaces;
+using MQTTnet.Server;
 
 namespace EMSCore.Infrastructure.Services;
 
@@ -85,9 +86,9 @@ public class MqttService : IMqttService, IDisposable
             {
                 clientOptionsBuilder.WithTlsOptions(o =>
                 {
-                    o.UseTls = true;
-                    o.AllowUntrustedCertificates = _config.AllowUntrustedCertificates;
-                    o.IgnoreCertificateChainErrors = _config.IgnoreCertificateChainErrors;
+                    o.WithSslProtocols(System.Security.Authentication.SslProtocols.Tls12);
+                    o.WithAllowUntrustedCertificates(_config.AllowUntrustedCertificates);
+                    o.WithIgnoreCertificateChainErrors(_config.IgnoreCertificateChainErrors);
                 });
             }
 

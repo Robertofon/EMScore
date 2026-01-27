@@ -4,7 +4,7 @@ using EMSCore.Application.Queries;
 using EMSCore.Application.Commands;
 using EMSCore.Domain.Entities;
 using EMSCore.Domain.Enums;
-using DateTimeRange;
+using System;
 
 namespace EMSCore.Edge.Controllers;
 
@@ -65,7 +65,7 @@ public class EnergyController : ControllerBase
                 return BadRequest("Start time must be before end time");
             }
 
-            var range = new DateTimeRange.DateTimeRange(startTime, endTime);
+            var range = new DateTimeRange(startTime, endTime);
             var query = new GetEnergyMeasurementsQuery(deviceId, range, measurementType);
             
             var measurements = await _mediator.Send(query, cancellationToken);
@@ -116,7 +116,7 @@ public class EnergyController : ControllerBase
                 return BadRequest("Interval must be between 1 and 1440 minutes");
             }
 
-            var range = new DateTimeRange.DateTimeRange(startTime, endTime);
+            var range = new DateTimeRange(startTime, endTime);
             var interval = TimeSpan.FromMinutes(intervalMinutes);
             var query = new GetAggregatedEnergyDataQuery(deviceId, range, interval);
             
@@ -161,7 +161,7 @@ public class EnergyController : ControllerBase
                 return BadRequest("Start time must be before end time");
             }
 
-            var range = new DateTimeRange.DateTimeRange(startTime, endTime);
+            var range = new DateTimeRange(startTime, endTime);
             var query = new GetSiteEnergyMeasurementsQuery(siteId, range);
             
             var measurements = await _mediator.Send(query, cancellationToken);
@@ -245,7 +245,7 @@ public class EnergyController : ControllerBase
                 return BadRequest("Start time must be before end time");
             }
 
-            var range = new DateTimeRange.DateTimeRange(startTime, endTime);
+            var range = new DateTimeRange(startTime, endTime);
             var query = new GetMeasurementStatisticsQuery(deviceId, measurementType, range);
             
             var statistics = await _mediator.Send(query, cancellationToken);

@@ -2,29 +2,80 @@
   "version": 3,
   "targets": {
     "net10.0": {
-      "DateTimeRange/1.0.1": {
-        "type": "package"
+      "DateRange/1.0.3": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.0/DateTimeRange.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/DateTimeRange.dll": {}
+        }
+      },
+      "Microsoft.Extensions.Primitives/7.0.0": {
+        "type": "package",
+        "compile": {
+          "lib/net7.0/Microsoft.Extensions.Primitives.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net7.0/Microsoft.Extensions.Primitives.dll": {
+            "related": ".xml"
+          }
+        },
+        "build": {
+          "buildTransitive/net6.0/_._": {}
+        }
       }
     }
   },
   "libraries": {
-    "DateTimeRange/1.0.1": {
-      "sha512": "yIsZbW4bPcMu41mky3yBulkaVb0GwR45DZ63kP/3F+DD7OHx/13xRQ5/SIIiHcCzXoQCuSHYnZkvUpPA33BOTQ==",
+    "DateRange/1.0.3": {
+      "sha512": "CphEZMtFNM85fIrHpaar8RXFOS5O2uRgZ0ZI1SGBUPCwueGCRmIIGGt38/7lq86e8lc8w94nn+YFyBrgVqI3JA==",
       "type": "package",
-      "path": "datetimerange/1.0.1",
+      "path": "daterange/1.0.3",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
-        "content/DateTimeExtensions.cs",
-        "content/DateTimeRange.cs",
-        "datetimerange.1.0.1.nupkg.sha512",
-        "datetimerange.nuspec"
+        "calendar.png",
+        "daterange.1.0.3.nupkg.sha512",
+        "daterange.nuspec",
+        "lib/netstandard2.0/DateTimeRange.dll",
+        "readme.md"
+      ]
+    },
+    "Microsoft.Extensions.Primitives/7.0.0": {
+      "sha512": "um1KU5kxcRp3CNuI8o/GrZtD4AIOXDk+RLsytjZ9QPok3ttLUelLKpilVPuaFT3TFjOhSibUAso0odbOaCDj3Q==",
+      "type": "package",
+      "path": "microsoft.extensions.primitives/7.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Icon.png",
+        "LICENSE.TXT",
+        "THIRD-PARTY-NOTICES.TXT",
+        "buildTransitive/net461/Microsoft.Extensions.Primitives.targets",
+        "buildTransitive/net462/_._",
+        "buildTransitive/net6.0/_._",
+        "buildTransitive/netcoreapp2.0/Microsoft.Extensions.Primitives.targets",
+        "lib/net462/Microsoft.Extensions.Primitives.dll",
+        "lib/net462/Microsoft.Extensions.Primitives.xml",
+        "lib/net6.0/Microsoft.Extensions.Primitives.dll",
+        "lib/net6.0/Microsoft.Extensions.Primitives.xml",
+        "lib/net7.0/Microsoft.Extensions.Primitives.dll",
+        "lib/net7.0/Microsoft.Extensions.Primitives.xml",
+        "lib/netstandard2.0/Microsoft.Extensions.Primitives.dll",
+        "lib/netstandard2.0/Microsoft.Extensions.Primitives.xml",
+        "microsoft.extensions.primitives.7.0.0.nupkg.sha512",
+        "microsoft.extensions.primitives.nuspec",
+        "useSharedDesignerContext.txt"
       ]
     }
   },
   "projectFileDependencyGroups": {
     "net10.0": [
-      "DateTimeRange >= 1.0.1"
+      "DateRange >= 1.0.3",
+      "Microsoft.Extensions.Primitives >= 7.0.0"
     ]
   },
   "packageFolders": {
@@ -71,9 +122,13 @@
       "net10.0": {
         "targetAlias": "net10.0",
         "dependencies": {
-          "DateTimeRange": {
+          "DateRange": {
             "target": "Package",
-            "version": "[1.0.1, )"
+            "version": "[1.0.3, )"
+          },
+          "Microsoft.Extensions.Primitives": {
+            "target": "Package",
+            "version": "[7.0.0, )"
           }
         },
         "imports": [

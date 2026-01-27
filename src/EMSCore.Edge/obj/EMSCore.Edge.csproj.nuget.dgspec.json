@@ -49,6 +49,10 @@
         "net10.0": {
           "targetAlias": "net10.0",
           "dependencies": {
+            "DateRange": {
+              "target": "Package",
+              "version": "[1.0.3, )"
+            },
             "MediatR": {
               "target": "Package",
               "version": "[14.0.0, )"
@@ -389,9 +393,13 @@
         "net10.0": {
           "targetAlias": "net10.0",
           "dependencies": {
-            "DateTimeRange": {
+            "DateRange": {
               "target": "Package",
-              "version": "[1.0.1, )"
+              "version": "[1.0.3, )"
+            },
+            "Microsoft.Extensions.Primitives": {
+              "target": "Package",
+              "version": "[7.0.0, )"
             }
           },
           "imports": [
@@ -739,9 +747,29 @@
         "net10.0": {
           "targetAlias": "net10.0",
           "dependencies": {
+            "DateRange": {
+              "target": "Package",
+              "version": "[1.0.3, )"
+            },
             "Microsoft.AspNetCore.OpenApi": {
               "target": "Package",
               "version": "[10.0.1, )"
+            },
+            "Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[10.0.1, )"
+            },
+            "Swashbuckle.AspNetCore": {
+              "target": "Package",
+              "version": "[10.1.0, )"
+            },
+            "Swashbuckle.AspNetCore.Swagger": {
+              "target": "Package",
+              "version": "[10.1.0, )"
+            },
+            "Swashbuckle.AspNetCore.SwaggerUI": {
+              "target": "Package",
+              "version": "[10.1.0, )"
             }
           },
           "imports": [
@@ -1229,6 +1257,10 @@
             "MQTTnet": {
               "target": "Package",
               "version": "[4.3.7, )"
+            },
+            "MQTTnet.Extensions.ManagedClient": {
+              "target": "Package",
+              "version": "[4.3.7.1207, )"
             },
             "Microsoft.EntityFrameworkCore": {
               "target": "Package",

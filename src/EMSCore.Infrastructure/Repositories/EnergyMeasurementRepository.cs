@@ -3,7 +3,7 @@ using EMSCore.Domain.Entities;
 using EMSCore.Domain.Enums;
 using EMSCore.Domain.Interfaces;
 using EMSCore.Infrastructure.Data;
-using DateTimeRange;
+using System;
 
 namespace EMSCore.Infrastructure.Repositories;
 
@@ -20,8 +20,8 @@ public class EnergyMeasurementRepository : IEnergyMeasurementRepository
     }
 
     public async Task<IEnumerable<EnergyMeasurement>> GetMeasurementsAsync(
-        string deviceId, 
-        DateTimeRange.DateTimeRange range, 
+        string deviceId,
+        DateTimeRange range,
         CancellationToken cancellationToken = default)
     {
         return await _context.EnergyMeasurements
@@ -34,8 +34,8 @@ public class EnergyMeasurementRepository : IEnergyMeasurementRepository
     }
 
     public async Task<IEnumerable<EnergyMeasurement>> GetSiteMeasurementsAsync(
-        string siteId, 
-        DateTimeRange.DateTimeRange range, 
+        string siteId,
+        DateTimeRange range,
         CancellationToken cancellationToken = default)
     {
         return await _context.EnergyMeasurements
@@ -48,9 +48,9 @@ public class EnergyMeasurementRepository : IEnergyMeasurementRepository
     }
 
     public async Task<IEnumerable<EnergyMeasurement>> GetMeasurementsByTypeAsync(
-        string deviceId, 
-        MeasurementType measurementType, 
-        DateTimeRange.DateTimeRange range, 
+        string deviceId,
+        MeasurementType measurementType,
+        DateTimeRange range,
         CancellationToken cancellationToken = default)
     {
         return await _context.EnergyMeasurements
@@ -64,9 +64,9 @@ public class EnergyMeasurementRepository : IEnergyMeasurementRepository
     }
 
     public async Task<IEnumerable<EnergyMeasurement>> GetAggregatedDataAsync(
-        string deviceId, 
-        TimeSpan interval, 
-        DateTimeRange.DateTimeRange range, 
+        string deviceId,
+        TimeSpan interval,
+        DateTimeRange range,
         CancellationToken cancellationToken = default)
     {
         // Use TimescaleDB time_bucket function for efficient aggregation
@@ -160,10 +160,10 @@ public class EnergyMeasurementRepository : IEnergyMeasurementRepository
             .FirstOrDefaultAsync(cancellationToken);
     }
 
-    public async Task<MeasurementStatistics> GetMeasurementStatisticsAsync(
-        string deviceId, 
-        MeasurementType measurementType, 
-        DateTimeRange.DateTimeRange range, 
+    public async Task<IMeasurementStatistics> GetMeasurementStatisticsAsync(
+        string deviceId,
+        MeasurementType measurementType,
+        DateTimeRange range,
         CancellationToken cancellationToken = default)
     {
         var measurements = await _context.EnergyMeasurements
