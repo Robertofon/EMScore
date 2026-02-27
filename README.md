@@ -1,6 +1,8 @@
 # EMSCore - Energie-Management-System
 
-Ein hochskalierbares Energie-Management-System (EMS) mit Batterieunterstützung und Plugin-basierter Erweiterbarkeit, implementiert in .NET 10 mit TimescaleDB und MQTT.
+Ein hochskalierbares Energie-Management-System (EMS) mit Batterieunterstützung und Plugin-basierter Erweiterbarkeit, implementiert in .NET 10 mit TimescaleDB und MQTT. Das Einsatzszenario ist die Freiflächensolaranlage mit Batteriecontainer.
+
+## Achtung WIP 
 
 ## 🎯 Projektübersicht
 
