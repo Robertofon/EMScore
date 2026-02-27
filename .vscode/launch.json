@@ -1,0 +1,61 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "EMSCore.Edge (Debug)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "Build: solution",
+            "program": "${workspaceFolder}/src/EMSCore.Edge/bin/Debug/net10.0/EMSCore.Edge.dll",
+            "args": "",
+            "cwd": "${workspaceFolder}/src/EMSCore.Edge",
+            "stopAtEntry": true,
+            "console": "integratedTerminal",
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            }
+        },
+        {
+            "name": "EMSCore.Edge (No Debug)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "Build: solution",
+            "program": "dotnet",
+            "args": "run --project ${workspaceFolder}/src/EMSCore.Edge/EMSCore.Edge.csproj",
+            "cwd": "${workspaceFolder}/src/EMSCore.Edge",
+            "console": "integratedTerminal",
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+            "internalConsoleOptions": "neverOpen"
+        },
+        {
+            "name": "EMSCore.API (Debug)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "Build: solution",
+            "program": "${workspaceFolder}/src/EMSCore.API/bin/Debug/net10.0/EMSCore.API.dll",
+            "args": "",
+            "cwd": "${workspaceFolder}/src/EMSCore.API",
+            "stopAtEntry": true,
+            "console": "integratedTerminal",
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            }
+        },
+        {
+            "name": "EMSCore.API (No Debug)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "Build: solution",
+            "program": "dotnet",
+            "args": "run --project ${workspaceFolder}/src/EMSCore.API/EMSCore.API.csproj",
+            "cwd": "${workspaceFolder}/src/EMSCore.API",
+            "console": "integratedTerminal",
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+            "internalConsoleOptions": "neverOpen"
+        }
+    ]
+}
