@@ -21,6 +21,7 @@ Das System basiert auf Clean Architecture mit folgenden Layern:
 - **Domain Layer** (`EMSCore.Domain`) - Core Entities, Enums und Interfaces
 - **Application Layer** (`EMSCore.Application`) - MediatR Commands/Queries und Handler
 - **Infrastructure Layer** (`EMSCore.Infrastructure`) - EF Core, Repositories, MQTT Services
+- **Backend System** (`EMSCore.Backend`) - Zentrale Datenverarbeitung, -speicherung und Systemverwaltung
 - **Edge System** (`EMSCore.Edge`) - ASP.NET Core Web API für Edge-Deployment
 
 ### Technologie-Stack
@@ -47,6 +48,7 @@ EMSCore/
 │   ├── EMSCore.Domain/            # Domain Layer
 │   ├── EMSCore.Application/       # Application Layer
 │   ├── EMSCore.Infrastructure/    # Infrastructure Layer
+│   ├── EMSCore.Backend/            # Backend System (Zentrale Datenverarbeitung)
 │   ├── EMSCore.Edge/              # Edge System (ASP.NET Core API)
 │   └── EMSCore.Plugins/           # Plugin-Framework
 ├── tests/                         # Tests
@@ -79,12 +81,13 @@ cd EMSCore
 docker-compose up -d
 
 # Logs verfolgen
-docker-compose logs -f emscore-edge
+docker-compose logs -f emscore-backend
 ```
 
 ### 3. Services überprüfen
 
-- **EMS Core API**: http://localhost:8080
+- **EMS Core Backend**: http://localhost:8080
+- **EMS Core Edge**: http://localhost:8081
 - **Swagger UI**: http://localhost:8080 (automatisch geöffnet)
 - **Health Check**: http://localhost:8080/health
 - **Grafana Dashboard**: http://localhost:3000 (admin/admin)
@@ -193,9 +196,12 @@ mosquitto_pub -h localhost -t "ems/docker-site-001/devices/battery-001/measureme
 dotnet restore
 
 # Datenbank-Connection String anpassen
-# src/EMSCore.Edge/appsettings.json
+# src/EMSCore.Backend/appsettings.json
 
-# Anwendung starten
+# Backend-Anwendung starten
+dotnet run --project src/EMSCore.Backend
+
+# Oder Edge-Anwendung starten
 dotnet run --project src/EMSCore.Edge
 ```
 
@@ -267,8 +273,11 @@ public interface IBatteryModule : IEMSModule
 ### Docker Production
 
 ```bash
-# Production Build
-docker build -f src/EMSCore.Edge/Dockerfile -t emscore:latest .
+# Production Build Backend
+docker build -f src/EMSCore.Backend/Dockerfile -t emscore-backend:latest .
+
+# Production Build Edge
+docker build -f src/EMSCore.Edge/Dockerfile -t emscore-edge:latest .
 
 # Mit Production Compose
 docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
