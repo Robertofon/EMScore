@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using EMSCore.Domain.Enums;
 
 namespace EMSCore.Domain.Entities;
 
@@ -24,11 +25,17 @@ public class Device
     public string Name { get; set; } = string.Empty;
     
     /// <summary>
-    /// Type of device (e.g., "Battery", "Solar Panel", "Inverter", "Sensor")
+    /// Type of device (e.g., Battery, SolarPanel, Inverter, Sensor, Smartmeter, Shelly)
     /// </summary>
-    [MaxLength(100)]
     [Required]
-    public string Type { get; set; } = string.Empty;
+    public DeviceType Type { get; set; } = DeviceType.Unknown;
+    
+    /// <summary>
+    /// Custom MQTT topic pattern for this device (e.g., "ems/{site_id}/devices/{device_id}/measurements/+")
+    /// If null, the default topic pattern will be used based on device type
+    /// </summary>
+    [MaxLength(500)]
+    public string? TopicPattern { get; set; }
     
     /// <summary>
     /// Device manufacturer

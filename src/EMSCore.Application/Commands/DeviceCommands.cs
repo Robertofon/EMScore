@@ -1,5 +1,6 @@
 using MediatR;
 using EMSCore.Domain.Entities;
+using EMSCore.Domain.Enums;
 
 namespace EMSCore.Application.Commands;
 
@@ -8,8 +9,9 @@ namespace EMSCore.Application.Commands;
 /// </summary>
 /// <param name="Id">Unique device identifier</param>
 /// <param name="Name">Human-readable device name</param>
-/// <param name="Type">Device type (e.g., "Battery", "Solar Panel", "Inverter")</param>
+/// <param name="Type">Device type (e.g., Battery, SolarPanel, Inverter, Smartmeter, Shelly)</param>
 /// <param name="SiteId">Site where the device is located</param>
+/// <param name="TopicPattern">Custom MQTT topic pattern for this device (optional)</param>
 /// <param name="Manufacturer">Device manufacturer (optional)</param>
 /// <param name="Model">Device model (optional)</param>
 /// <param name="SerialNumber">Device serial number (optional)</param>
@@ -18,8 +20,9 @@ namespace EMSCore.Application.Commands;
 public record CreateDeviceCommand(
     string Id,
     string Name,
-    string Type,
+    DeviceType Type,
     string SiteId,
+    string? TopicPattern = null,
     string? Manufacturer = null,
     string? Model = null,
     string? SerialNumber = null,
@@ -33,6 +36,7 @@ public record CreateDeviceCommand(
 /// <param name="Id">Device identifier</param>
 /// <param name="Name">Updated device name</param>
 /// <param name="Type">Updated device type</param>
+/// <param name="TopicPattern">Custom MQTT topic pattern for this device (optional)</param>
 /// <param name="Manufacturer">Updated manufacturer (optional)</param>
 /// <param name="Model">Updated model (optional)</param>
 /// <param name="SerialNumber">Updated serial number (optional)</param>
@@ -42,7 +46,8 @@ public record CreateDeviceCommand(
 public record UpdateDeviceCommand(
     string Id,
     string Name,
-    string Type,
+    DeviceType Type,
+    string? TopicPattern = null,
     string? Manufacturer = null,
     string? Model = null,
     string? SerialNumber = null,

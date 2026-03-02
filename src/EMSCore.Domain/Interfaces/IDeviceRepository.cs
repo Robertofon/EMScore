@@ -1,4 +1,5 @@
 using EMSCore.Domain.Entities;
+using EMSCore.Domain.Enums;
 
 namespace EMSCore.Domain.Interfaces;
 
@@ -36,7 +37,7 @@ public interface IDeviceRepository
     /// <param name="type">Device type</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Collection of devices of the specified type</returns>
-    Task<IEnumerable<Device>> GetByTypeAsync(string type, CancellationToken cancellationToken = default);
+    Task<IEnumerable<Device>> GetByTypeAsync(DeviceType type, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets only active devices

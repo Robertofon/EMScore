@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using EMSCore.Domain.Entities;
+using EMSCore.Domain.Enums;
 using EMSCore.Domain.Interfaces;
 using EMSCore.Infrastructure.Data;
 
@@ -68,13 +69,13 @@ public class DeviceRepository : IDeviceRepository
     }
 
     /// <summary>
-    /// Retrieves all devices of a specific type (e.g., "Battery", "Solar Panel", "Inverter")
+    /// Retrieves all devices of a specific type (e.g., Battery, SolarPanel, Inverter, Smartmeter, Shelly)
     /// Enables type-based device categorization and management
     /// </summary>
     /// <param name="type">Device type to filter by</param>
     /// <param name="cancellationToken">Cancellation token for async operation</param>
     /// <returns>Collection of devices of the specified type</returns>
-    public async Task<IEnumerable<Device>> GetByTypeAsync(string type, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Device>> GetByTypeAsync(DeviceType type, CancellationToken cancellationToken = default)
     {
         return await _context.Devices
             .Where(d => d.Type == type) // Filter by device type

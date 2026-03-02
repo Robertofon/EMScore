@@ -80,6 +80,7 @@ public class DeviceCommandHandlers :
             Id = request.Id,
             Name = request.Name,
             Type = request.Type,
+            TopicPattern = request.TopicPattern,
             SiteId = request.SiteId,
             Manufacturer = request.Manufacturer,
             Model = request.Model,
@@ -122,6 +123,7 @@ public class DeviceCommandHandlers :
         // Update the device properties
         existingDevice.Name = request.Name;
         existingDevice.Type = request.Type;
+        existingDevice.TopicPattern = request.TopicPattern;
         existingDevice.Manufacturer = request.Manufacturer;
         existingDevice.Model = request.Model;
         existingDevice.SerialNumber = request.SerialNumber;

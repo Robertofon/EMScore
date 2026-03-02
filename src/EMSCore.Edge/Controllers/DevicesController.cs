@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using MediatR;
 using EMSCore.Application.Commands;
 using EMSCore.Domain.Entities;
+using EMSCore.Domain.Enums;
 using EMSCore.Domain.Interfaces;
 
 namespace EMSCore.Edge.Controllers;
@@ -188,6 +189,7 @@ public class DevicesController : ControllerBase
                 request.Name,
                 request.Type,
                 request.SiteId,
+                request.TopicPattern,
                 request.Manufacturer,
                 request.Model,
                 request.SerialNumber,
@@ -238,6 +240,7 @@ public class DevicesController : ControllerBase
                 id,
                 request.Name,
                 request.Type,
+                request.TopicPattern,
                 request.Manufacturer,
                 request.Model,
                 request.SerialNumber,
@@ -340,8 +343,9 @@ public class DevicesController : ControllerBase
 /// </summary>
 /// <param name="Id">Unique device identifier</param>
 /// <param name="Name">Human-readable device name</param>
-/// <param name="Type">Device type</param>
+/// <param name="Type">Device type (e.g., Battery, SolarPanel, Inverter, Smartmeter, Shelly)</param>
 /// <param name="SiteId">Site where the device is located</param>
+/// <param name="TopicPattern">Custom MQTT topic pattern for this device (optional)</param>
 /// <param name="Manufacturer">Device manufacturer (optional)</param>
 /// <param name="Model">Device model (optional)</param>
 /// <param name="SerialNumber">Device serial number (optional)</param>
@@ -350,8 +354,9 @@ public class DevicesController : ControllerBase
 public record CreateDeviceRequest(
     string Id,
     string Name,
-    string Type,
+    DeviceType Type,
     string SiteId,
+    string? TopicPattern = null,
     string? Manufacturer = null,
     string? Model = null,
     string? SerialNumber = null,
@@ -364,6 +369,7 @@ public record CreateDeviceRequest(
 /// </summary>
 /// <param name="Name">Updated device name</param>
 /// <param name="Type">Updated device type</param>
+/// <param name="TopicPattern">Custom MQTT topic pattern for this device (optional)</param>
 /// <param name="Manufacturer">Updated manufacturer (optional)</param>
 /// <param name="Model">Updated model (optional)</param>
 /// <param name="SerialNumber">Updated serial number (optional)</param>
@@ -372,7 +378,8 @@ public record CreateDeviceRequest(
 /// <param name="IsActive">Whether the device is active</param>
 public record UpdateDeviceRequest(
     string Name,
-    string Type,
+    DeviceType Type,
+    string? TopicPattern = null,
     string? Manufacturer = null,
     string? Model = null,
     string? SerialNumber = null,
