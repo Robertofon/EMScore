@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EMSCore - Energie-Management-System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 30px 0;
+            margin-bottom: 40px;
+            border-radius: 0 0 20px 20px;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 30px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.3s;
+        }
+
+        nav a:hover {
+            opacity: 0.8;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 60px 20px;
+            color: white;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+
+        .diday-banner {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            margin: 40px 0;
+            text-align: center;
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .diday-banner h2 {
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+
+        .diday-banner .highlight {
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .services {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+
+        .service-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+
+        .service-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .service-card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+
+        .topics {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            margin: 40px 0;
+        }
+
+        .topics h2 {
+            color: #667eea;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .topic-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .topic-item {
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .topic-item h4 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .topic-item p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: #ffd700;
+            color: #333;
+            padding: 15px 40px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+            margin-top: 20px;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: white;
+            opacity: 0.8;
+        }
+
+        footer a {
+            color: #ffd700;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <a href="/" class="logo">⚡ EMSCore</a>
+                <nav>
+                    <ul>
+                        <li><a href="#did day">DI.Day</a></li>
+                        <li><a href="#leistungen">Leistungen</a></li>
+                        <li><a href="#themen">Themen</a></li>
+                        <li><a href="#kontakt">Kontakt</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <section class="hero">
+            <h1>Energie-Management-System</h1>
+            <p>Modernes .NET-basiertes EMS für Solaranlagen und Batteriespeicher</p>
+            <a href="https://github.com/anomalyco/EMSCore" class="cta-button" target="_blank">
+                Auf GitHub ansehen
+            </a>
+        </section>
+
+        <section class="diday-banner" id="did day">
+            <h2>🏛️ DI.Day - Digital Independence Day</h2>
+            <p class="highlight">
+                Flinkebits unterstützt den DI.Day und seine Ziele
+            </p>
+            <p style="margin-top: 15px;">
+                Flinkebits bietet Dienstleistungen um (im Zuge des DI.day) 
+                <strong>digitale Unabhängigkeit</strong> zu erreichen.
+            </p>
+            <a href="https://diday.events" class="cta-button" target="_blank">
+                Mehr über DI.Day erfahren
+            </a>
+        </section>
+
+        <section class="services" id="leistungen">
+            <div class="service-card">
+                <h3>🛠️ Software-Entwicklung</h3>
+                <p>Maßgeschneiderte Softwarelösungen für Unternehmen, die digitale Unabhängigkeit anstreben. Wir entwickeln resiliente, wartbare Systeme.</p>
+            </div>
+            <div class="service-card">
+                <h3>☁️ Cloud-Infrastruktur</h3>
+                <p>Planung und Umsetzung von Self-Hosting-Lösungen. Weniger Abhängigkeit von großen Cloud-Anbietern, mehr Kontrolle über Ihre Daten.</p>
+            </div>
+            <div class="service-card">
+                <h3>🔒 Sicherheit & Datenschutz</h3>
+                <p>Implementierung von Sicherheitskonzepten, die Ihre digitale Souveränität stärken. DSGVO-konforme Lösungen aus Deutschland.</p>
+            </div>
+            <div class="service-card">
+                <h3>🔧 Open Source</h3>
+                <p>Wir setzen auf offene Standards und Open-Source-Technologien. Keine Vendor-Lock-ins, volle Transparenz und Gemeinschaft.</p>
+            </div>
+        </section>
+
+        <section class="topics" id="themen">
+            <h2>📚 Themen & Technologien</h2>
+            <div class="topic-grid">
+                <div class="topic-item">
+                    <h4>🏠 Self-Hosting</h4>
+                    <p>Hosten Sie Ihre Anwendungen selbst. Wir unterstützen Sie bei der Einrichtung von eigenen Servern und Infrastrukturen.</p>
+                </div>
+                <div class="topic-item">
+                    <h4>🔑 Authentifizierung</h4>
+                    <p>Sichere Identity-Lösungen mit Keycloak/OIDC und lokalen Konten. Volle Kontrolle über Ihre Benutzerdaten.</p>
+                </div>
+                <div class="topic-item">
+                    <h4>📊 Zeitreihendaten</h4>
+                    <p>TimescaleDB für effiziente Speicherung und Analyse von Sensordaten. Optimiert für IoT-Anwendungen.</p>
+                </div>
+                <div class="topic-item">
+                    <h4>📡 MQTT & IoT</h4>
+                    <p>Moderne IoT-Architekturen mit MQTT-Protokoll. Skalierbar von Einzelgeräten bis zu verteilten Systemen.</p>
+                </div>
+                <div class="topic-item">
+                    <h4>⚡ Energie-Management</h4>
+                    <p>Intelligente Steuerung von Solaranlagen, Batterien und Energiemonitoring für nachhaltige Systeme.</p>
+                </div>
+                <div class="topic-item">
+                    <h4>🐳 Container & DevOps</h4>
+                    <p>Docker-basierte Deployments mit modernen CI/CD-Pipelines. Reproduzierbar und wartbar.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="diday-banner" id="kontakt" style="margin-top: 60px;">
+            <h2>🚀 Digitale Unabhängigkeit starten</h2>
+            <p>
+                Sie möchten mehr über unsere Dienstleistungen erfahren oder haben Fragen 
+                zum DI.Day und wie Sie digital unabhängig werden können?
+            </p>
+            <a href="mailto:info@flinkebits.de" class="cta-button">
+                Kontakt aufnehmen
+            </a>
+        </section>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>© 2026 Flinkebits - <a href="https://flinkebits.de">flinkebits.de</a></p>
+            <p style="margin-top: 10px; font-size: 0.9rem;">
+                Unterstützt den <a href="https://diday.events">DI.Day</a> - Gemeinsam für digitale Unabhängigkeit
+            </p>
+        </div>
+    </footer>
+</body>
+</html>

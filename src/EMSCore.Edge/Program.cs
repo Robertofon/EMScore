@@ -86,9 +86,17 @@ builder.Services.AddScoped<ISiteRepository, SiteRepository>();
 builder.Services.Configure<MqttConfiguration>(
     builder.Configuration.GetSection("Mqtt"));
 
+// Configure Shelly settings
+builder.Services.Configure<ShellyConfiguration>(
+    builder.Configuration.GetSection("Shelly"));
+
+// Register topic mapper
+builder.Services.AddSingleton<DeviceTypeTopicMapper>();
+
 // Register MQTT service
 builder.Services.AddSingleton<IMqttService, MqttService>();
 builder.Services.AddScoped<EnergyDataMqttHandler>();
+builder.Services.AddScoped<ShellyPlugMqttHandler>();
 
 // Add hosted service for MQTT
 builder.Services.AddHostedService<MqttBackgroundService>();
@@ -173,15 +181,18 @@ public class MqttBackgroundService : BackgroundService
 {
     private readonly IMqttService _mqttService;
     private readonly EnergyDataMqttHandler _energyHandler;
+    private readonly ShellyPlugMqttHandler _shellyHandler;
     private readonly ILogger<MqttBackgroundService> _logger;
 
     public MqttBackgroundService(
         IMqttService mqttService,
         EnergyDataMqttHandler energyHandler,
+        ShellyPlugMqttHandler shellyHandler,
         ILogger<MqttBackgroundService> logger)
     {
         _mqttService = mqttService;
         _energyHandler = energyHandler;
+        _shellyHandler = shellyHandler;
         _logger = logger;
     }
 
@@ -203,6 +214,19 @@ public class MqttBackgroundService : BackgroundService
             
             await _mqttService.SubscribeAsync("ems/+/devices/+/status", 
                 _energyHandler.HandleDeviceStatusAsync, cancellationToken: stoppingToken);
+
+            // Subscribe to Shelly Plug topics
+            await _mqttService.SubscribeAsync("shellies/+/power", 
+                msg => _shellyHandler.HandleShellyPowerAsync(msg, stoppingToken), cancellationToken: stoppingToken);
+            
+            await _mqttService.SubscribeAsync("shellies/+/energy", 
+                msg => _shellyHandler.HandleShellyPowerAsync(msg, stoppingToken), cancellationToken: stoppingToken);
+            
+            await _mqttService.SubscribeAsync("shellies/+/relay/+/power", 
+                msg => _shellyHandler.HandleShellyRelayPowerAsync(msg, stoppingToken), cancellationToken: stoppingToken);
+            
+            await _mqttService.SubscribeAsync("shellies/+/relay/+/energy", 
+                msg => _shellyHandler.HandleShellyRelayPowerAsync(msg, stoppingToken), cancellationToken: stoppingToken);
 
             _logger.LogInformation("MQTT subscriptions configured successfully");
 
