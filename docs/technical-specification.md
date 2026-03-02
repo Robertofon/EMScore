@@ -615,3 +615,766 @@ spec:
 - **Message Queues:** RabbitMQ/Apache Kafka Integration
 - **Cloud Services:** AWS IoT Core, Azure IoT Hub Adapter
 - **Standards:** IEC 61850, Modbus, DNP3 Protokoll-Support
+
+---
+
+### Edge-System Architektur
+
+#### Überblick
+Das Edge-System ist eine eigenständige .NET-Anwendung, die für den Betrieb an verteilten Standorten optimiert ist. Es kann autonom arbeiten und mit dem Backend synchronisieren.
+
+#### Edge-spezifische Komponenten
+
+```mermaid
+graph TB
+    subgraph "Edge System"
+        subgraph "API Layer"
+            REST[REST API]
+            WS[WebSocket]
+        end
+        
+        subgraph "Driver Layer"
+            MODBUS[Modbus RTU/TCP]
+            BACNET[BACnet]
+            CAN[CAN Bus]
+            OPCUA[OPC UA Client]
+            IEC61850[IEC 61850]
+            GPIO[GPIO/I2C/SPI]
+        end
+        
+        subgraph "Device Adapter Layer"
+            ID[IDevice Interface]
+            IS[ISensor Interface]
+            IA[IActuator Interface]
+        end
+        
+        subgraph "Data Processing"
+            MQ[MQTT Handler]
+            EP[Energy Processor]
+        end
+        
+        subgraph "Storage"
+            LOCAL[(Local SQLite/PostgreSQL)]
+            CACHE[In-Memory Cache]
+        end
+        
+        REST --> ID
+        MODBUS --> ID
+        BACNET --> IS
+        CAN --> ID
+        OPCUA --> IA
+        IEC61850 --> ID
+        GPIO --> IS
+        
+        ID --> MQ
+        IS --> MQ
+        IA --> MQ
+        
+        MQ --> EP
+        EP --> LOCAL
+        EP --> CACHE
+    end
+```
+
+#### API-Authentifizierung (Edge)
+
+Das Edge-System verwendet API-Key-basierte Authentifizierung, konfigurierbar über Umgebungsvariablen:
+
+```csharp
+// appsettings.json Konfiguration
+{
+  "Authentication": {
+    "ApiKeys": [
+      {
+        "Key": "env:EMS_API_KEY",  // Lädt aus Umgebungsvariable
+        "Name": "Backend Service",
+        "Role": "SystemAdmin",
+        "ExpiresAt": null
+      },
+      {
+        "Key": "env:EMS_READONLY_KEY",
+        "Name": "Readonly Client",
+        "Role": "ReadOnly",
+        "ExpiresAt": "2025-12-31"
+      }
+    ]
+  }
+}
+```
+
+**.env Datei (nicht versioniert):**
+```bash
+# EMS Edge Configuration
+EMS_API_KEY=your-secret-api-key-here
+EMS_READONLY_KEY=readonly-key-12345
+EMS_MQTT_BROKER=localhost
+EMS_MQTT_PORT=1883
+```
+
+#### API-Key Middleware
+```csharp
+public class ApiKeyAuthenticationMiddleware
+{
+    private readonly RequestDelegate _next;
+    private readonly IConfiguration _configuration;
+    
+    public async Task InvokeAsync(HttpContext context)
+    {
+        if (!context.Request.Headers.TryGetValue("X-API-Key", out var providedKey))
+        {
+            context.Response.StatusCode = 401;
+            await context.Response.WriteAsync("API Key required");
+            return;
+        }
+        
+        var validKeys = _configuration.GetSection("Authentication:ApiKeys")
+            .Get<List<ApiKeyConfiguration>>();
+        
+        var isValid = validKeys.Any(k => 
+            k.Key == providedKey.ToString() && 
+            (k.ExpiresAt == null || k.ExpiresAt > DateTime.UtcNow));
+        
+        if (!isValid)
+        {
+            context.Response.StatusCode = 403;
+            await context.Response.WriteAsync("Invalid or expired API Key");
+            return;
+        }
+        
+        await _next(context);
+    }
+}
+```
+
+---
+
+### Driver-Schicht (Industrial Protocols)
+
+Die Driver-Schicht kapselt industrielle Kommunikationsprotokolle für die Datenerfassung und Steuerung.
+
+#### Architektur
+
+```mermaid
+graph LR
+    subgraph "Driver Interface"
+        IDRV[IDriver]
+        CDRV[ConfigurableDriver]
+    end
+    
+    subgraph "Serial Drivers"
+        MODBUS_RTU[Modbus RTU]
+    end
+    
+    subgraph "Network Drivers"
+        MODBUS_TCP[Modbus TCP]
+        BACNET[BACnet]
+        OPCUA[OPC UA]
+        IEC61850[IEC 61850]
+    end
+    
+    subgraph "Bus Drivers"
+        CAN[CAN Bus]
+    end
+    
+    subgraph "Hardware Drivers"
+        GPIO[GPIO]
+        I2C[I2C]
+        SPI[SPI]
+    end
+    
+    IDRV --> CDRV
+    CDRV --> MODBUS_RTU
+    CDRV --> MODBUS_TCP
+    CDRV --> BACNET
+    CDRV --> OPCUA
+    CDRV --> IEC61850
+    CDRV --> CAN
+    CDRV --> GPIO
+    CDRV --> I2C
+    CDRV --> SPI
+```
+
+#### Driver-Interface
+
+```csharp
+public interface IDriver
+{
+    string Name { get; }
+    string Protocol { get; }
+    DriverState State { get; }
+    bool IsConnected { get; }
+    
+    Task<bool> ConnectAsync(DriverConfiguration config, CancellationToken ct = default);
+    Task DisconnectAsync(CancellationToken ct = default);
+    
+    Task<IEnumerable<DriverRegister>> ReadRegistersAsync(IEnumerable<string> addresses, CancellationToken ct = default);
+    Task WriteRegistersAsync(IEnumerable<DriverRegister> registers, CancellationToken ct = default);
+    
+    IAsyncEnumerable<DriverEvent> EventStream(CancellationToken ct = default);
+}
+
+public interface IConfigurableDriver : IDriver
+{
+    Task ConfigureAsync(DriverConfiguration config, CancellationToken ct = default);
+    Task<IEnumerable<RegisterDefinition>> DiscoverRegistersAsync(CancellationToken ct = default);
+    Task<bool> ValidateConnectionAsync(CancellationToken ct = default);
+}
+
+public enum DriverState
+{
+    Disconnected,
+    Connecting,
+    Connected,
+    Error,
+    Reconnecting
+}
+
+public class DriverConfiguration
+{
+    public string ConnectionString { get; set; } = string.Empty;
+    public int TimeoutMs { get; set; } = 5000;
+    public int RetryCount { get; set; } = 3;
+    public Dictionary<string, string> Parameters { get; set; } = new();
+}
+
+public class DriverRegister
+{
+    public string Address { get; set; } = string.Empty;
+    public RegisterType Type { get; set; }
+    public object? Value { get; set; }
+    public DateTime Timestamp { get; set; }
+    public QualityFlag Quality { get; set; }
+}
+
+public class RegisterDefinition
+{
+    public string Address { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public RegisterType Type { get; set; }
+    public double ScaleFactor { get; set; } = 1.0;
+    public double Offset { get; set; } = 0.0;
+    public string? Unit { get; set; }
+}
+```
+
+#### Modbus RTU Driver
+
+```csharp
+public class ModbusRtuDriver : IConfigurableDriver
+{
+    public string Name => "Modbus RTU";
+    public string Protocol => "Modbus RTU";
+    public DriverState State { get; private set; }
+    public bool IsConnected => State == DriverState.Connected;
+    
+    private SerialPort? _serialPort;
+    private byte _slaveAddress;
+    
+    public async Task<bool> ConnectAsync(DriverConfiguration config, CancellationToken ct = default)
+    {
+        var portName = config.Parameters.GetValueOrDefault("Port", "COM1");
+        var baudRate = int.Parse(config.Parameters.GetValueOrDefault("BaudRate", "9600"));
+        _slaveAddress = byte.Parse(config.Parameters.GetValueOrDefault("SlaveAddress", "1"));
+        
+        _serialPort = new SerialPort(portName, baudRate)
+        {
+            DataBits = 8,
+            Parity = Parity.None,
+            StopBits = StopBits.One
+        };
+        
+        await _serialPort.OpenAsync(ct);
+        State = DriverState.Connected;
+        return true;
+    }
+    
+    public async Task<IEnumerable<DriverRegister>> ReadRegistersAsync(
+        IEnumerable<string> addresses, CancellationToken ct = default)
+    {
+        var results = new List<DriverRegister>();
+        
+        foreach (var addr in addresses)
+        {
+            var register = await ReadSingleRegisterAsync(addr, ct);
+            results.Add(register);
+        }
+        
+        return results;
+    }
+    
+    // ... weitere Methoden
+}
+```
+
+#### Modbus TCP Driver
+
+```csharp
+public class ModbusTcpDriver : IConfigurableDriver
+{
+    public string Name => "Modbus TCP";
+    public string Protocol => "Modbus TCP";
+    
+    private TcpClient? _tcpClient;
+    private ModbusIpMaster? _modbusMaster;
+    
+    public async Task<bool> ConnectAsync(DriverConfiguration config, CancellationToken ct = default)
+    {
+        var host = config.Parameters.GetValueOrDefault("Host", "localhost");
+        var port = int.Parse(config.Parameters.GetValueOrDefault("Port", "502"));
+        
+        _tcpClient = new TcpClient();
+        await _tcpClient.ConnectAsync(host, port, ct);
+        
+        _modbusMaster = ModbusIpMaster.CreateIp(_tcpClient);
+        State = DriverState.Connected;
+        return true;
+    }
+}
+```
+
+#### BACnet Driver
+
+```csharp
+public class BacnetDriver : IConfigurableDriver
+{
+    public string Name => "BACnet";
+    public string Protocol => "BACnet/IP";
+    
+    public async Task<IEnumerable<DriverRegister>> ReadRegistersAsync(
+        IEnumerable<string> addresses, CancellationToken ct = default)
+    {
+        // BACnet ReadMultipleProperty Requests
+        // Unterstützung für Analog Input, Analog Output, Analog Value
+    }
+}
+```
+
+#### CAN Bus Driver
+
+```csharp
+public class CanBusDriver : IConfigurableDriver
+{
+    public string Name => "CAN Bus";
+    public string Protocol => "CAN";
+    
+    public async Task<IEnumerable<DriverRegister>> ReadRegistersAsync(
+        IEnumerable<string> addresses, CancellationToken ct = default)
+    {
+        // CAN 2.0A/B Frame Handling
+        // Extended Frame Support für CAN FD
+    }
+}
+```
+
+#### OPC UA Client Driver
+
+```csharp
+public class OpcUaDriver : IConfigurableDriver
+{
+    public string Name => "OPC UA";
+    public string Protocol => "OPC UA";
+    
+    public async Task<bool> ConnectAsync(DriverConfiguration config, CancellationToken ct = default)
+    {
+        var endpoint = config.Parameters.GetValueOrDefault("Endpoint", "opc.tcp://localhost:4840");
+        var securityMode = config.Parameters.GetValueOrDefault("SecurityMode", "SignAndEncrypt");
+        
+        // OPC UA Client Session Management
+    }
+}
+```
+
+#### IEC 61850 Driver
+
+```csharp
+public class Iec61850Driver : IConfigurableDriver
+{
+    public string Name => "IEC 61850";
+    public string Protocol => "IEC 61850 MMS";
+    
+    public async Task<IEnumerable<DriverRegister>> ReadRegistersAsync(
+        IEnumerable<string> addresses, CancellationToken ct = default)
+    {
+        // IEC 61850 GOOSE und Sampled Values Support
+        // MMS (Manufacturing Message Specification)
+    }
+}
+```
+
+#### GPIO/I2C/SPI Wrapper
+
+```csharp
+public class GpioDriver : IConfigurableDriver
+{
+    public string Name => "GPIO";
+    public string Protocol => "GPIO";
+    
+    public async Task WriteRegistersAsync(IEnumerable<DriverRegister> registers, CancellationToken ct = default)
+    {
+        foreach (var reg in registers)
+        {
+            var pin = int.Parse(reg.Address);
+            var value = Convert.ToBoolean(reg.Value);
+            await WriteGpioPinAsync(pin, value, ct);
+        }
+    }
+}
+
+public class I2cDriver : IConfigurableDriver
+{
+    public string Name => "I2C";
+    public string Protocol => "I2C";
+    
+    public async Task<IEnumerable<DriverRegister>> ReadRegistersAsync(
+        IEnumerable<string> addresses, CancellationToken ct = default)
+    {
+        // I2C Register Lesen/Schreiben
+    }
+}
+
+public class SpiDriver : IConfigurableDriver
+{
+    public string Name => "SPI";
+    public string Protocol => "SPI";
+}
+```
+
+---
+
+### Device Adapter-Schicht
+
+Die Device Adapter-Schicht abstrahiert die darunterliegenden Driver und stellt einheitliche Interfaces für Geräte bereit.
+
+```mermaid
+graph TB
+    subgraph "Device Adapter Interface"
+        IDEV[IDevice]
+        ISEN[ISensor]
+        IACT[IActuator]
+    end
+    
+    subgraph "Base Classes"
+        BASE[DeviceBase]
+        SBASE[SensorBase]
+        ABASE[ActuatorBase]
+    end
+    
+    subgraph "Concrete Adapters"
+        SMA[SmartMeter Adapter]
+        BATT[ Battery Adapter]
+        INV[Inverter Adapter]
+        SHELLY[Shelly Adapter]
+        SENSOR[Generic Sensor Adapter]
+    end
+    
+    IDEV --> BASE
+    ISEN --> SBASE
+    IACT --> ABASE
+    
+    BASE --> SMA
+    BASE --> BATT
+    BASE --> INV
+    
+    SBASE --> SENSOR
+    SBASE --> SHELLY
+    
+    ABASE --> SMA
+    ABASE --> INV
+```
+
+#### IDevice Interface
+
+```csharp
+public interface IDevice
+{
+    string Id { get; }
+    string Name { get; }
+    DeviceType Type { get; }
+    DeviceState State { get; }
+    
+    Task<DeviceStatus> GetStatusAsync(CancellationToken ct = default);
+    Task<bool> ConnectAsync(CancellationToken ct = default);
+    Task DisconnectAsync(CancellationToken ct = default);
+    
+    Task<IEnumerable<Telemetry>> ReadTelemetryAsync(CancellationToken ct = default);
+    Task<CommandResult> ExecuteCommandAsync(DeviceCommand command, CancellationToken ct = default);
+    
+    IAsyncEnumerable<DeviceEvent> EventStream(CancellationToken ct = default);
+}
+
+public enum DeviceState
+{
+    Unknown,
+    Offline,
+    Online,
+    Error,
+    Maintenance
+}
+
+public record DeviceStatus(
+    bool IsOnline,
+    DateTime LastSeen,
+    Dictionary<string, object> Properties,
+    HealthStatus Health);
+
+public record Telemetry(
+    string MetricName,
+    object Value,
+    string Unit,
+    DateTime Timestamp,
+    QualityFlag Quality);
+
+public record DeviceCommand(
+    string CommandId,
+    string Action,
+    Dictionary<string, object> Parameters);
+
+public record CommandResult(
+    bool Success,
+    string? ErrorMessage,
+    Dictionary<string, object>? Results);
+```
+
+#### ISensor Interface
+
+```csharp
+public interface ISensor : IDevice
+{
+    SensorType SensorType { get; }
+    MeasurementUnit SupportedUnits { get; }
+    double? MinValue { get; }
+    double? MaxValue { get; }
+    
+    Task<SensorReading> ReadAsync(CancellationToken ct = default);
+    Task<IEnumerable<SensorReading>> ReadBatchAsync(IEnumerable<string>? metricFilters = null, CancellationToken ct = default);
+    
+    Task CalibrateAsync(CalibrationData calibration, CancellationToken ct = default);
+    Task<bool> SelfTestAsync(CancellationToken ct = default);
+}
+
+public enum SensorType
+{
+    Temperature,
+    Humidity,
+    Pressure,
+    Power,
+    Current,
+    Voltage,
+    Energy,
+    Flow,
+    Level,
+    Light,
+    Motion,
+    Generic
+}
+
+public record SensorReading(
+    string SensorId,
+    string MetricName,
+    double Value,
+    string Unit,
+    DateTime Timestamp,
+    QualityFlag Quality,
+    Dictionary<string, object>? Metadata = null);
+
+public record CalibrationData(
+    double ScaleFactor,
+    double Offset,
+    DateTime CalibratedAt,
+    string? CalibrationMethod = null);
+```
+
+#### IActuator Interface
+
+```csharp
+public interface IActuator : IDevice
+{
+    ActuatorType ActuatorType { get; }
+    ActuatorState ActuatorState { get; }
+    IEnumerable<ActuatorCapability> Capabilities { get; }
+    
+    Task<ActuatorState> GetActuatorStateAsync(CancellationToken ct = default);
+    Task<CommandResult> SetOutputAsync(ActuatorOutput output, CancellationToken ct = default);
+    Task<CommandResult> SetOutputRangeAsync(ActuatorOutput min, ActuatorOutput max, CancellationToken ct = default);
+    
+    Task<CommandResult> EnableAsync(CancellationToken ct = default);
+    Task<CommandResult> DisableAsync(CancellationToken ct = default);
+}
+
+public enum ActuatorType
+{
+    Relay,
+    Dimmer,
+    Valve,
+    Motor,
+    Solenoid,
+    Heater,
+    Generic
+}
+
+public enum ActuatorState
+{
+    Unknown,
+    Idle,
+    Active,
+    Error,
+    Disabled
+}
+
+public record ActuatorOutput(
+    double Value,
+    string Unit);
+
+public record ActuatorCapability(
+    string CapabilityName,
+    bool IsSupported,
+    double? MinValue,
+    double? MaxValue,
+    IEnumerable<string>? AllowedValues = null);
+```
+
+#### Basis-Klassen
+
+```csharp
+public abstract class DeviceBase : IDevice
+{
+    public abstract string Id { get; }
+    public abstract string Name { get; }
+    public abstract DeviceType Type { get; }
+    public abstract DeviceState State { get; protected set; }
+    
+    protected readonly List<IDriver> Drivers = new();
+    
+    public abstract Task<DeviceStatus> GetStatusAsync(CancellationToken ct = default);
+    public abstract Task<bool> ConnectAsync(CancellationToken ct = default);
+    public abstract Task DisconnectAsync(CancellationToken ct = default);
+    
+    public abstract Task<IEnumerable<Telemetry>> ReadTelemetryAsync(CancellationToken ct = default);
+    public abstract Task<CommandResult> ExecuteCommandAsync(DeviceCommand command, CancellationToken ct = default);
+    
+    public abstract IAsyncEnumerable<DeviceEvent> EventStream(CancellationToken ct = default);
+    
+    protected void AddDriver(IDriver driver) => Drivers.Add(driver);
+}
+
+public abstract class SensorBase : DeviceBase, ISensor
+{
+    public abstract SensorType SensorType { get; }
+    public abstract MeasurementUnit SupportedUnits { get; }
+    public abstract double? MinValue { get; }
+    public abstract double? MaxValue { get; }
+    
+    public abstract Task<SensorReading> ReadAsync(CancellationToken ct = default);
+    public abstract Task<IEnumerable<SensorReading>> ReadBatchAsync(IEnumerable<string>? metricFilters = null, CancellationToken ct = default);
+    
+    public abstract Task CalibrateAsync(CalibrationData calibration, CancellationToken ct = default);
+    public abstract Task<bool> SelfTestAsync(CancellationToken ct = default);
+}
+
+public abstract class ActuatorBase : DeviceBase, IActuator
+{
+    public abstract ActuatorType ActuatorType { get; }
+    public abstract ActuatorState ActuatorState { get; protected set; }
+    public abstract IEnumerable<ActuatorCapability> Capabilities { get; }
+    
+    public abstract Task<ActuatorState> GetActuatorStateAsync(CancellationToken ct = default);
+    public abstract Task<CommandResult> SetOutputAsync(ActuatorOutput output, CancellationToken ct = default);
+    public abstract Task<CommandResult> SetOutputRangeAsync(ActuatorOutput min, ActuatorOutput max, CancellationToken ct = default);
+    
+    public abstract Task<CommandResult> EnableAsync(CancellationToken ct = default);
+    public abstract Task<CommandResult> DisableAsync(CancellationToken ct = default);
+}
+```
+
+#### Konkreter Adapter: SmartMeter Adapter
+
+```csharp
+public class SmartMeterAdapter : DeviceBase
+{
+    private readonly ModbusRtuDriver _modbusDriver;
+    
+    public override string Id => _config.DeviceId;
+    public override string Name => _config.DeviceName;
+    public override DeviceType Type => DeviceType.Smartmeter;
+    
+    public SmartMeterAdapter(SmartMeterConfiguration config)
+    {
+        _config = config;
+        _modbusDriver = new ModbusRtuDriver();
+    }
+    
+    public override async Task<IEnumerable<Telemetry>> ReadTelemetryAsync(CancellationToken ct = default)
+    {
+        var registers = await _modbusDriver.ReadRegistersAsync(
+            new[] { "3000", "3002", "3004", "3006" }, ct);
+        
+        return new[]
+        {
+            new Telemetry("Voltage", registers[0].Value, "V", DateTime.UtcNow, registers[0].Quality),
+            new Telemetry("Current", registers[1].Value, "A", DateTime.UtcNow, registers[1].Quality),
+            new Telemetry("Power", registers[2].Value, "W", DateTime.UtcNow, registers[2].Quality),
+            new Telemetry("Energy", registers[3].Value, "kWh", DateTime.UtcNow, registers[3].Quality)
+        };
+    }
+}
+```
+
+---
+
+### Konfigurationsbeispiel
+
+```json
+{
+  "Drivers": {
+    "ModbusRtu": {
+      "Enabled": true,
+      "Port": "COM1",
+      "BaudRate": 9600,
+      "SlaveAddress": 1,
+      "TimeoutMs": 5000
+    },
+    "ModbusTcp": {
+      "Enabled": true,
+      "Host": "192.168.1.100",
+      "Port": 502,
+      "TimeoutMs": 5000
+    },
+    "Gpio": {
+      "Enabled": true,
+      "PinMappings": {
+        "temperature_sensor": 4,
+        "relay_control": 17
+      }
+    }
+  },
+  "Devices": [
+    {
+      "Id": "smartmeter-001",
+      "Type": "Smartmeter",
+      "Driver": "ModbusRtu",
+      "Configuration": {
+        "SlaveAddress": 1,
+        "Registers": {
+          "Voltage": "3000",
+          "Current": "3002",
+          "Power": "3004",
+          "Energy": "3006"
+        }
+      }
+    },
+    {
+      "Id": "shelly-plug-001",
+      "Type": "Shelly",
+      "Driver": "Mqtt",
+      "Configuration": {
+        "TopicPattern": "shellies/{device_id}/#"
+      }
+    }
+  ],
+  "Authentication": {
+    "ApiKeys": [
+      { "Key": "env:EMS_API_KEY", "Name": "Backend", "Role": "Admin" }
+    ]
+  }
+}
+```
