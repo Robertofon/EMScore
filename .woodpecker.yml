@@ -1,0 +1,24 @@
+---
+# Woodpecker CI Configuration for EMSCore
+# Runs on push to main, feature/*, and issue/* branches
+
+when:
+  - event: push
+    branch:
+      - main
+      - "feature/**"
+      - "issue/**"
+
+steps:
+  build:
+    image: mcr.microsoft.com/dotnet/sdk:10.0
+    commands:
+      - dotnet restore EMSCore.sln
+      - dotnet build EMSCore.sln --no-restore
+
+  test:
+    image: mcr.microsoft.com/dotnet/sdk:10.0
+    commands:
+      - dotnet test EMSCore.sln --no-build --verbosity normal
+    depends_on:
+      - build
