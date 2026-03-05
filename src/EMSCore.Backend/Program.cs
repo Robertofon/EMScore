@@ -148,6 +148,10 @@ app.Logger.LogInformation("EMS Core Backend System starting...");
 
 app.Run();
 
+/// <summary>
+/// Background service that manages MQTT connection and subscribes to energy measurement topics.
+/// Runs continuously to receive data from Edge systems.
+/// </summary>
 public class BackendMqttBackgroundService : BackgroundService
 {
     private readonly IMqttService _mqttService;
@@ -208,6 +212,10 @@ public class BackendMqttBackgroundService : BackgroundService
     }
 }
 
+/// <summary>
+/// Health check that verifies MQTT service connectivity.
+/// Returns healthy if connected, unhealthy if disconnected.
+/// </summary>
 public class BackendMqttHealthCheck : Microsoft.Extensions.Diagnostics.HealthChecks.IHealthCheck
 {
     private readonly IMqttService _mqttService;

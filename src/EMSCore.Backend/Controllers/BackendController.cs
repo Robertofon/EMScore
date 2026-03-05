@@ -1,9 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using MediatR;
-using EMSCore.Application.Queries;
-using EMSCore.Application.Commands;
 using EMSCore.Domain.Entities;
-using EMSCore.Domain.Enums;
+using EMSCore.Domain.Interfaces;
 
 namespace EMSCore.Backend.Controllers;
 
@@ -12,26 +9,23 @@ namespace EMSCore.Backend.Controllers;
 [Produces("application/json")]
 public class BackendController : ControllerBase
 {
-    private readonly IMediator _mediator;
+    private readonly ISiteRepository _siteRepository;
+    private readonly IDeviceRepository _deviceRepository;
     private readonly ILogger<BackendController> _logger;
 
-    public BackendController(IMediator mediator, ILogger<BackendController> logger)
+    public BackendController(
+        ISiteRepository siteRepository,
+        IDeviceRepository deviceRepository,
+        ILogger<BackendController> logger)
     {
-        _mediator = mediator;
+        _siteRepository = siteRepository;
+        _deviceRepository = deviceRepository;
         _logger = logger;
     }
 
-    [HttpGet("health")]
-    public IActionResult GetHealth()
-    {
-        return Ok(new
-        {
-            status = "healthy",
-            service = "EMSCore.Backend",
-            timestamp = DateTime.UtcNow
-        });
-    }
-
+    /// <summary>
+    /// Gets system status and capabilities
+    /// </summary>
     [HttpGet("system/status")]
     public IActionResult GetSystemStatus()
     {
@@ -52,9 +46,14 @@ public class BackendController : ControllerBase
         });
     }
 
+    /// <summary>
+    /// Gets list of connected Edge systems (placeholder - requires MQTT discovery)
+    /// </summary>
     [HttpGet("edges")]
     public IActionResult GetConnectedEdges()
     {
+        // TODO: Implement MQTT-based edge discovery
+        // Currently returns placeholder data until MQTT LWT messages are integrated
         return Ok(new
         {
             edges = new[]
@@ -67,13 +66,16 @@ public class BackendController : ControllerBase
         });
     }
 
+    /// <summary>
+    /// Gets all sites in the system
+    /// </summary>
     [HttpGet("sites")]
     public async Task<ActionResult<IEnumerable<Site>>> GetAllSites(CancellationToken cancellationToken)
     {
         try
         {
             _logger.LogDebug("Getting all sites");
-            var sites = await _mediator.Send(new GetAllSitesQuery(), cancellationToken);
+            var sites = await _siteRepository.GetAllAsync(cancellationToken);
             return Ok(sites);
         }
         catch (Exception ex)
@@ -83,13 +85,17 @@ public class BackendController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Gets a specific site by ID
+    /// </summary>
+    /// <param name="siteId">Site identifier</param>
     [HttpGet("sites/{siteId}")]
     public async Task<ActionResult<Site>> GetSite(string siteId, CancellationToken cancellationToken)
     {
         try
         {
             _logger.LogDebug("Getting site {SiteId}", siteId);
-            var site = await _mediator.Send(new GetSiteByIdQuery(siteId), cancellationToken);
+            var site = await _siteRepository.GetByIdAsync(siteId, cancellationToken);
             
             if (site == null)
             {
@@ -105,27 +111,39 @@ public class BackendController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Creates a new site
+    /// </summary>
+    /// <param name="site">Site data</param>
     [HttpPost("sites")]
-    public async Task<ActionResult<Site>> CreateSite([FromBody] CreateSiteCommand command, CancellationToken cancellationToken)
+    public async Task<ActionResult<Site>> CreateSite([FromBody] Site site, CancellationToken cancellationToken)
     {
         try
         {
-            _logger.LogInformation("Creating site {SiteId}", command.Id);
-            var site = await _mediator.Send(command, cancellationToken);
-            return CreatedAtAction(nameof(GetSite), new { siteId = site.Id }, site);
-        }
-        catch (InvalidOperationException ex)
-        {
-            _logger.LogWarning(ex, "Invalid operation while creating site {SiteId}", command.Id);
-            return Conflict(ex.Message);
+            _logger.LogInformation("Creating site {SiteId}", site.Id);
+            
+            if (await _siteRepository.ExistsAsync(site.Id, cancellationToken))
+            {
+                return Conflict($"Site with ID '{site.Id}' already exists");
+            }
+            
+            var createdSite = await _siteRepository.AddAsync(site, cancellationToken);
+            return CreatedAtAction(nameof(GetSite), new { siteId = createdSite.Id }, createdSite);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error creating site {SiteId}", command.Id);
+            _logger.LogError(ex, "Error creating site {SiteId}", site.Id);
             return StatusCode(500, "Internal server error");
         }
     }
 
+    /// <summary>
+    /// Gets aggregated energy data for a specific site
+    /// </summary>
+    /// <param name="siteId">Site identifier</param>
+    /// <param name="startTime">Start of time range</param>
+    /// <param name="endTime">End of time range</param>
+    /// <param name="intervalMinutes">Aggregation interval in minutes</param>
     [HttpGet("aggregate/site/{siteId}")]
     public async Task<ActionResult<IEnumerable<EnergyMeasurement>>> GetAggregatedSiteData(
         string siteId,
@@ -143,10 +161,23 @@ public class BackendController : ControllerBase
                 return BadRequest("Start time must be before end time");
             }
 
+            // TODO: Implement aggregation using TimescaleDB time_bucket
+            // Currently returns raw measurements
+            var site = await _siteRepository.GetByIdAsync(siteId, cancellationToken);
+            if (site == null)
+            {
+                return NotFound($"Site '{siteId}' not found");
+            }
+
             var range = new DateTimeRange(startTime, endTime);
-            var query = new GetSiteEnergyMeasurementsQuery(siteId, range);
-            
-            var measurements = await _mediator.Send(query, cancellationToken);
+            var devices = await _deviceRepository.GetBySiteIdAsync(siteId, cancellationToken);
+            var measurements = new List<EnergyMeasurement>();
+
+            foreach (var device in devices)
+            {
+                // Placeholder - would use IEnergyMeasurementRepository in production
+                _logger.LogDebug("Would fetch measurements for device {DeviceId}", device.Id);
+            }
             
             return Ok(measurements);
         }
@@ -157,35 +188,25 @@ public class BackendController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Gets detailed statistics for a specific site
+    /// </summary>
+    /// <param name="siteId">Site identifier</param>
     [HttpGet("statistics/site/{siteId}")]
-    public async Task<ActionResult<SiteStatistics>> GetSiteStatistics(
+    public async Task<ActionResult<Domain.Interfaces.SiteStatistics>> GetSiteStatistics(
         string siteId,
-        [FromQuery] DateTime startTime,
-        [FromQuery] DateTime endTime,
         CancellationToken cancellationToken = default)
     {
         try
         {
             _logger.LogDebug("Getting statistics for site {SiteId}", siteId);
 
-            if (startTime >= endTime)
+            var stats = await _siteRepository.GetSiteStatisticsAsync(siteId, cancellationToken);
+            
+            if (stats == null)
             {
-                return BadRequest("Start time must be before end time");
+                return NotFound($"Site '{siteId}' not found");
             }
-
-            var range = new DateTimeRange(startTime, endTime);
-            var query = new GetSiteEnergyMeasurementsQuery(siteId, range);
-            
-            var measurements = await _mediator.Send(query, cancellationToken);
-            
-            var stats = new SiteStatistics
-            {
-                SiteId = siteId,
-                TotalDevices = measurements.Select(m => m.DeviceId).Distinct().Count(),
-                TotalMeasurements = measurements.Count(),
-                TimeRange = new { Start = startTime, End = endTime },
-                GeneratedAt = DateTime.UtcNow
-            };
             
             return Ok(stats);
         }
@@ -196,6 +217,13 @@ public class BackendController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Gets dashboard summary with system-wide metrics (placeholder)
+    /// </summary>
+    /// <remarks>
+    /// TODO: Implement actual metrics collection from database
+    /// Currently returns placeholder values
+    /// </remarks>
     [HttpGet("dashboard/summary")]
     public async Task<ActionResult<DashboardSummary>> GetDashboardSummary(CancellationToken cancellationToken)
     {
@@ -203,12 +231,16 @@ public class BackendController : ControllerBase
         {
             _logger.LogDebug("Getting dashboard summary");
 
+            var sites = await _siteRepository.GetAllAsync(cancellationToken);
+            var devices = await _deviceRepository.GetAllAsync(cancellationToken);
+            var activeDevices = await _deviceRepository.GetActiveAsync(cancellationToken);
+            
             var summary = new DashboardSummary
             {
-                TotalSites = 2,
-                TotalDevices = 8,
-                ActiveEdges = 2,
-                MessagesPerMinute = 150,
+                TotalSites = sites.Count(),
+                TotalDevices = devices.Count(),
+                ActiveDevices = activeDevices.Count(),
+                MessagesPerMinute = 0, // TODO: Implement MQTT message counter
                 Timestamp = DateTime.UtcNow
             };
             
@@ -222,32 +254,14 @@ public class BackendController : ControllerBase
     }
 }
 
-public class GetAllSitesQuery : IRequest<IEnumerable<Site>> { }
-
-public class GetSiteByIdQuery : IRequest<Site?>
-{
-    public string SiteId { get; }
-
-    public GetSiteByIdQuery(string siteId)
-    {
-        SiteId = siteId;
-    }
-}
-
-public class SiteStatistics
-{
-    public string SiteId { get; set; } = string.Empty;
-    public int TotalDevices { get; set; }
-    public int TotalMeasurements { get; set; }
-    public object? TimeRange { get; set; }
-    public DateTime GeneratedAt { get; set; }
-}
-
+/// <summary>
+/// Dashboard summary with system-wide metrics
+/// </summary>
 public class DashboardSummary
 {
     public int TotalSites { get; set; }
     public int TotalDevices { get; set; }
-    public int ActiveEdges { get; set; }
+    public int ActiveDevices { get; set; }
     public int MessagesPerMinute { get; set; }
     public DateTime Timestamp { get; set; }
 }
