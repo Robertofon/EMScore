@@ -1,0 +1,43 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {},
+  "providers": {
+    "mammouth": {
+      "api_key": "DEIN_API_KEY",
+      "base_url": "https://api.mammouth.ai/v1",
+      "models": [
+        { "id": "gpt-5.2", "label": "GPT-5.2" },
+        { "id": "gpt-5.1", "label": "GPT-5.1" },
+        { "id": "gpt-5-mini", "label": "GPT-5 Mini" },
+        { "id": "gpt-4.1", "label": "GPT-4.1" },
+        { "id": "gpt-4.1-mini", "label": "GPT-4.1 Mini" },
+        { "id": "gpt-4.1-nano", "label": "GPT-4.1 Nano" },
+        { "id": "gpt-4o", "label": "GPT-4o" },
+        { "id": "mistral-large-3", "label": "Mistral Large 3" },
+        { "id": "mistral-medium-3.1", "label": "Mistral Medium 3.1" },
+        { "id": "mistral-small-3.2-24b-instruct", "label": "Mistral Small 3.2 (24B)" },
+        { "id": "codestral-2508", "label": "Codestral 2508" },
+        { "id": "grok-4", "label": "Grok-4" },
+        { "id": "grok-4-fast", "label": "Grok-4 Fast" },
+        { "id": "grok-code-fast-1", "label": "Grok Code Fast 1" },
+        { "id": "gemini-3-pro-image-preview", "label": "Gemini 3 Pro Image" },
+        { "id": "gemini-2.5-flash-image", "label": "Gemini 2.5 Flash Image" },
+        { "id": "gemini-2.5-flash-lite", "label": "Gemini 2.5 Flash Lite" },
+        { "id": "gemini-3-flash-preview", "label": "Gemini 3 Flash Preview" },
+        { "id": "gemini-3.1-pro-preview", "label": "Gemini 3.1 Pro Preview" },
+        { "id": "glm-5", "label": "GLM-5" },
+        { "id": "deepseek-r1-0528", "label": "DeepSeek R1" },
+        { "id": "deepseek-v3.2", "label": "DeepSeek V3.2" },
+        { "id": "kimi-k2.5", "label": "Kimi K2.5" },
+        { "id": "qwen3-coder", "label": "Qwen3 Coder" },
+        { "id": "llama-4-maverick", "label": "Llama-4 Maverick" },
+        { "id": "llama-4-scout", "label": "Llama-4 Scout" },
+        { "id": "sonar-pro", "label": "Sonar Pro" },
+        { "id": "sonar-deep-research", "label": "Sonar Deep Research" },
+        { "id": "claude-haiku-4-5", "label": "Claude Haiku 4.5" },
+        { "id": "claude-opus-4-6", "label": "Claude Opus 4.6" },
+        { "id": "claude-sonnet-4-6", "label": "Claude Sonnet 4.6" }
+      ]
+    }
+  }
+}
